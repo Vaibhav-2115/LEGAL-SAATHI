@@ -1,0 +1,53 @@
+[
+  {
+    "document_id": "aid_nalsa_eligibility_guidelines",
+    "document_type": "legal_aid_rule",
+    "title": "NALSA Free Legal Aid Eligibility & National Helpline 15100",
+    "jurisdiction": "India",
+    "state": "National",
+    "court": null,
+    "language": "en",
+    "date": "1987-10-11",
+    "act": "Legal Services Authorities Act, 1987",
+    "section": "Section 12",
+    "case_number": null,
+    "citation": "Legal Services Authorities Act, 1987, Section 12",
+    "text": "National Legal Services Authority (NALSA) Guidelines\nStatutory Authority: Legal Services Authorities Act, 1987\nToll-Free Legal Aid Helpline: 15100 (24x7)\nAutomatic Eligibility without Income Proof: Women (any income), Children under 18 (any income), Members of Scheduled Castes (SC) or Scheduled Tribes (ST), Persons with disability / differently abled, Victims of human trafficking or forced labour (begar), Persons in custody / undertrial prisoners, Industrial workmen\nIncome ceiling for general indigent citizens: Rs. 3,00,000 per annum across most states.\nServices provided: Free counsel representation, court fees waiver, drafting expenses, certified copy costs.",
+    "summary": "Eligibility criteria and procedural guidelines for availing free legal aid in India under NALSA and DLSA.",
+    "source_url": "https://nalsa.gov.in",
+    "source_dataset": "NALSA Guidelines & OGD India",
+    "license": "Government / Public Information",
+    "status": "current",
+    "quality_score": 1.0,
+    "quality_flags": [
+      "legal_aid",
+      "nalsa",
+      "helpline_15100"
+    ]
+  },
+  {
+    "document_id": "aid_consumer_commission_jurisdiction_rules",
+    "document_type": "legal_aid_rule",
+    "title": "Consumer Commission Hierarchy, Pecuniary Limits & e-Daakhil Filing",
+    "jurisdiction": "India",
+    "state": "National",
+    "court": null,
+    "language": "en",
+    "date": "2019-08-09",
+    "act": "Consumer Protection Act, 2019",
+    "section": "Sections 34, 47, 58, 69",
+    "case_number": null,
+    "citation": "Consumer Protection Act 2019 & 2021 Rules",
+    "text": "Consumer Disputes Redressal Commission Three-Tier Hierarchy (CPA 2019 Rules):\n1. District Commission (DCDRC): Pecuniary limits for claims where consideration paid does not exceed Rs. 50 Lakhs. Online filing via e-Daakhil.\n2. State Commission (SCDRC): Claims between Rs. 50 Lakhs and Rs. 2 Crores, and appeals from District Commissions within 45 days.\n3. National Commission (NCDRC): Claims exceeding Rs. 2 Crores, located in New Delhi, and appeals from State Commissions within 30 days.\nLimitation period: 2 years from date of cause of action under Section 69 CPA 2019.",
+    "summary": "Jurisdiction tiers, filing limits, and appeal timeframes for consumer dispute commissions in India.",
+    "source_url": "https://edaakhil.nic.in",
+    "source_dataset": "Department of Consumer Affairs / e-Daakhil",
+    "license": "Government / Public Information",
+    "status": "current",
+    "quality_score": 1.0,
+    "quality_flags": [
+      "consumer_redressal",
+      "edaakhil"
+    ]
+  }
+]

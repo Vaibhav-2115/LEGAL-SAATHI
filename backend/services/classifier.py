@@ -14,7 +14,8 @@ ISSUE_PATTERNS = {
     "consumer": [
         r"consumer", r"defective", r"warranty", r"refund", r"amazon", r"flipkart",
         r"service center", r"poor service", r"replacement", r"unfair trade", r"bill",
-        r"overcharging", r"expired goods", r"deficiency of service", r"customer care"
+        r"overcharging", r"expired goods", r"deficiency of service", r"customer care",
+        r"damaged", r"cracked", r"return policy", r"return"
     ],
     "property_rera": [
         r"rera", r"builder", r"possession", r"flat", r"apartment", r"allottee",

@@ -6,7 +6,8 @@ under the Right to Information Act, 2005.
 
 from datetime import datetime, timezone
 import uuid
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
+from backend.core.auth import enforce_case_ownership, get_current_session
 from backend.data.db import db
 from backend.schemas.actions import RTIRequest, RTIResponse
 
@@ -14,10 +15,23 @@ router = APIRouter(tags=["Action Modules"])
 
 
 @router.post("/actions/rti", response_model=RTIResponse)
-def draft_rti_application(payload: RTIRequest):
+def draft_rti_application(
+    payload: RTIRequest,
+    current_session_id: str = Depends(get_current_session)
+):
     """
     Generates an official RTI application under Section 6(1) of the RTI Act, 2005.
+    Verifies case ownership if case_id is provided.
     """
+    if payload.case_id:
+        case = db.get_case(payload.case_id)
+        if not case:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"error": "case_not_found", "message": f"Case '{payload.case_id}' was not found."}
+            )
+        enforce_case_ownership(case.session_id, current_session_id)
+
     draft_id = f"draft_rti_{uuid.uuid4().hex[:10]}"
     now_utc = datetime.now(timezone.utc)
     date_str = now_utc.strftime("%d-%m-%Y")

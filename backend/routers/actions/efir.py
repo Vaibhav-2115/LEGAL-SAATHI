@@ -3,17 +3,32 @@ Legal Saathi - Action Module: e-FIR & Police Guidance (efir.py)
 Endpoint POST /actions/efir: Guides citizens on filing e-FIR, NCR, or cyber complaints.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
+from backend.core.auth import enforce_case_ownership, get_current_session
+from backend.data.db import db
 from backend.schemas.actions import EFIRRequest, EFIRResponse
 
 router = APIRouter(tags=["Action Modules"])
 
 
 @router.post("/actions/efir", response_model=EFIRResponse)
-def get_efir_guidance(payload: EFIRRequest):
+def get_efir_guidance(
+    payload: EFIRRequest,
+    current_session_id: str = Depends(get_current_session)
+):
     """
     Evaluates grievance and gives step-by-step guidance for e-FIR or cyber reporting.
+    Verifies case ownership if case_id is provided.
     """
+    if payload.case_id:
+        case = db.get_case(payload.case_id)
+        if not case:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"error": "case_not_found", "message": f"Case '{payload.case_id}' was not found."}
+            )
+        enforce_case_ownership(case.session_id, current_session_id)
+
     is_cyber = "cyber" in payload.incident_type.lower() or "fraud" in payload.incident_type.lower() or "upi" in payload.incident_type.lower()
     
     if is_cyber:

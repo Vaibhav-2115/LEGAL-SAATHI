@@ -129,6 +129,182 @@ class DatabaseManager:
             )
         """)
 
+        # --- Revenue & Billing Tables (LEGAL_SAATHI_REVENUE_BACKEND_SPEC.md) ---
+        # 1. Subscription Plans Master
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS subscription_plans (
+                plan_id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                tier TEXT NOT NULL,
+                amount_inr INTEGER NOT NULL,
+                billing_period TEXT NOT NULL,
+                features_json TEXT NOT NULL,
+                is_active INTEGER DEFAULT 1,
+                created_at TEXT NOT NULL
+            )
+        """)
+
+        # 2. User Subscriptions Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_subscriptions (
+                subscription_id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                plan_id TEXT NOT NULL,
+                status TEXT NOT NULL,
+                current_period_start TEXT NOT NULL,
+                current_period_end TEXT NOT NULL,
+                gateway_subscription_id TEXT,
+                cancel_at_period_end INTEGER DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (plan_id) REFERENCES subscription_plans(plan_id)
+            )
+        """)
+
+        # 3. Payment Orders & Transactions
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS payment_orders (
+                order_id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                gateway_order_id TEXT UNIQUE,
+                item_type TEXT NOT NULL,
+                item_ref_id TEXT,
+                amount_inr INTEGER NOT NULL,
+                currency TEXT DEFAULT 'INR',
+                status TEXT NOT NULL,
+                signature TEXT,
+                metadata_json TEXT,
+                created_at TEXT NOT NULL,
+                paid_at TEXT
+            )
+        """)
+
+        # 4. Invoices Table (GST SAC Code 998311 Compliant)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS invoices (
+                invoice_id TEXT PRIMARY KEY,
+                order_id TEXT UNIQUE,
+                user_id TEXT NOT NULL,
+                customer_name TEXT,
+                customer_state TEXT DEFAULT 'Delhi',
+                sac_code TEXT DEFAULT '998311',
+                base_amount_inr INTEGER NOT NULL,
+                cgst_inr INTEGER DEFAULT 0,
+                sgst_inr INTEGER DEFAULT 0,
+                igst_inr INTEGER DEFAULT 0,
+                total_amount_inr INTEGER NOT NULL,
+                invoice_pdf_url TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (order_id) REFERENCES payment_orders(order_id)
+            )
+        """)
+
+        # 5. Collective Action Pool Contributions
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS collective_pool_contributions (
+                contribution_id TEXT PRIMARY KEY,
+                cluster_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                order_id TEXT UNIQUE,
+                amount_inr INTEGER NOT NULL,
+                status TEXT DEFAULT 'pledged',
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (order_id) REFERENCES payment_orders(order_id)
+            )
+        """)
+
+        # Seed initial subscription plans if empty
+        cursor.execute("SELECT COUNT(*) FROM subscription_plans")
+        if cursor.fetchone()[0] == 0:
+            now_iso = datetime.now(timezone.utc).isoformat()
+            default_plans = [
+                (
+                    "plan_civic",
+                    "Bharat Civic Access",
+                    "civic",
+                    0,
+                    "one_time",
+                    json.dumps([
+                        "Unlimited Multilingual Legal AI Chat",
+                        "Evidence Checklist Generation",
+                        "NALSA & DLSA Free Legal Aid Directory",
+                        "Emergency 112 / 1930 / 181 Guidance",
+                        "Consumer & Tenancy Rights Literacy"
+                    ]),
+                    1,
+                    now_iso
+                ),
+                (
+                    "plan_pro_monthly",
+                    "Saathi Pro Monthly",
+                    "pro",
+                    14900,  # 149.00 in paise
+                    "monthly",
+                    json.dumps([
+                        "Unlimited Court-Ready Legal Notices",
+                        "Section 6(1) RTI Applications with PIO Addresses",
+                        "Formal e-FIR & Cyber Crime Filing Packets",
+                        "Watermark-Free PDF Dossier Downloads",
+                        "Automated 15-Day Postal Dispatch Tracking",
+                        "Priority AI Multi-Act Legal Retrieval"
+                    ]),
+                    1,
+                    now_iso
+                ),
+                (
+                    "plan_pro_annual",
+                    "Saathi Pro Annual",
+                    "pro",
+                    129900,  # 1299.00 in paise (Save 27%)
+                    "annual",
+                    json.dumps([
+                        "All Saathi Pro Monthly Features",
+                        "Collective Action Docket Filing Rights",
+                        "Multi-Year Document Vault (Encrypted)",
+                        "27% Annual Savings (₹108/month effective)"
+                    ]),
+                    1,
+                    now_iso
+                ),
+                (
+                    "plan_advocate_monthly",
+                    "Advocate Practice Hub Monthly",
+                    "advocate",
+                    149900,  # 1499.00 in paise
+                    "monthly",
+                    json.dumps([
+                        "AI Chronology & Brief Extraction for Case Files",
+                        "Bulk Case File OCR & Landmark Precedent Search",
+                        "Multi-Client Case Management & Timeline Generator",
+                        "Verified BCI-Compliant Public Profile (Non-Promotional)",
+                        "Court Hearing Calendar & Daily Cause List Sync"
+                    ]),
+                    1,
+                    now_iso
+                ),
+                (
+                    "plan_advocate_annual",
+                    "Advocate Practice Hub Annual",
+                    "advocate",
+                    1499000,  # 14,990.00 in paise (2 Months Free)
+                    "annual",
+                    json.dumps([
+                        "All Advocate Practice Hub Features",
+                        "Unlimited Junior Associate Sub-Accounts (up to 3)",
+                        "Custom Law Firm Letterhead Automation",
+                        "Priority Phone & Case File Ingestion Support"
+                    ]),
+                    1,
+                    now_iso
+                )
+            ]
+            cursor.executemany("""
+                INSERT INTO subscription_plans (
+                    plan_id, name, tier, amount_inr, billing_period,
+                    features_json, is_active, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, default_plans)
+
         conn.commit()
 
     # --- Session Operations ---
@@ -141,12 +317,13 @@ class DatabaseManager:
             return dict(row)
         
         now = datetime.now(timezone.utc).isoformat()
+        user_id = f"usr_{uuid.uuid4().hex[:10]}"
         cursor.execute(
             "INSERT INTO sessions (session_id, user_id, language_pref, created_at) VALUES (?, ?, ?, ?)",
-            (session_id, f"usr_{uuid.uuid4().hex[:10]}", lang, now)
+            (session_id, user_id, lang, now)
         )
         conn.commit()
-        return {"session_id": session_id, "language_pref": lang, "created_at": now}
+        return {"session_id": session_id, "user_id": user_id, "language_pref": lang, "created_at": now}
 
     # --- Case Operations ---
     def save_case(
@@ -165,6 +342,13 @@ class DatabaseManager:
         now = datetime.now(timezone.utc).isoformat()
         evidence_list = evidence or []
 
+        # Database-level ownership verification before insert/update
+        cursor.execute("SELECT session_id FROM cases WHERE case_id = ?", (case_id,))
+        existing_row = cursor.fetchone()
+        if existing_row and existing_row["session_id"] and existing_row["session_id"] != session_id:
+            logger.warning(f"Prevented unauthorized overwrite of case {case_id} by session {session_id}")
+            raise PermissionError(f"Access denied: Case '{case_id}' belongs to another session.")
+
         cursor.execute("""
             INSERT OR REPLACE INTO cases (
                 case_id, session_id, issue_type, title, description,
@@ -181,7 +365,7 @@ class DatabaseManager:
         ))
         conn.commit()
 
-        self.log_audit_event("system", "save_case", case_id, {"issue_type": issue_type})
+        self.log_audit_event("session:" + session_id, "save_case", case_id, {"issue_type": issue_type})
         return CaseResponse(
             case_id=case_id,
             session_id=session_id,
@@ -194,6 +378,22 @@ class DatabaseManager:
             created_at=now,
             updated_at=now
         )
+
+    def delete_case(self, case_id: str, session_id: str) -> bool:
+        """Deletes a case only if owned by the requesting session."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT session_id FROM cases WHERE case_id = ?", (case_id,))
+        row = cursor.fetchone()
+        if not row:
+            return False
+        if row["session_id"] != session_id:
+            raise PermissionError(f"Access denied: Cannot delete case '{case_id}' owned by another session.")
+        
+        cursor.execute("DELETE FROM cases WHERE case_id = ? AND session_id = ?", (case_id, session_id))
+        conn.commit()
+        self.log_audit_event("session:" + session_id, "delete_case", case_id, {})
+        return True
 
     def get_case(self, case_id: str) -> Optional[CaseResponse]:
         conn = self.get_connection()
@@ -415,6 +615,276 @@ class DatabaseManager:
             "total_clustered_incidents": total_clustered,
             "common_localities": common_localities
         }
+
+    # --- Billing & Subscription Operations (REV-SPEC-001) ---
+    def get_subscription_plans(self, active_only: bool = True) -> List[Dict[str, Any]]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        query = "SELECT * FROM subscription_plans" + (" WHERE is_active = 1" if active_only else "")
+        cursor.execute(query)
+        plans = []
+        for row in cursor.fetchall():
+            d = dict(row)
+            d["features"] = json.loads(d["features_json"]) if d["features_json"] else []
+            plans.append(d)
+        return plans
+
+    def get_plan(self, plan_id: str) -> Optional[Dict[str, Any]]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM subscription_plans WHERE plan_id = ?", (plan_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        d = dict(row)
+        d["features"] = json.loads(d["features_json"]) if d["features_json"] else []
+        return d
+
+    def get_user_subscription(self, user_id: str) -> Optional[Dict[str, Any]]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT s.*, p.name as plan_name, p.tier as plan_tier, p.features_json
+            FROM user_subscriptions s
+            JOIN subscription_plans p ON s.plan_id = p.plan_id
+            WHERE s.user_id = ? AND s.status = 'active'
+            ORDER BY s.current_period_end DESC LIMIT 1
+        """, (user_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        d = dict(row)
+        d["features"] = json.loads(d["features_json"]) if d["features_json"] else []
+        return d
+
+    def create_or_update_subscription(
+        self,
+        subscription_id: str,
+        user_id: str,
+        plan_id: str,
+        status: str,
+        current_period_start: str,
+        current_period_end: str,
+        gateway_subscription_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        now = datetime.now(timezone.utc).isoformat()
+        cursor.execute("""
+            INSERT OR REPLACE INTO user_subscriptions (
+                subscription_id, user_id, plan_id, status,
+                current_period_start, current_period_end, gateway_subscription_id,
+                cancel_at_period_end, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 
+                COALESCE((SELECT created_at FROM user_subscriptions WHERE subscription_id = ?), ?), 
+                ?
+            )
+        """, (
+            subscription_id, user_id, plan_id, status,
+            current_period_start, current_period_end, gateway_subscription_id,
+            subscription_id, now, now
+        ))
+        conn.commit()
+        self.log_audit_event(f"user:{user_id}", "subscription_updated", subscription_id, {"plan_id": plan_id, "status": status})
+        return {
+            "subscription_id": subscription_id,
+            "user_id": user_id,
+            "plan_id": plan_id,
+            "status": status,
+            "current_period_start": current_period_start,
+            "current_period_end": current_period_end
+        }
+
+    def create_payment_order(
+        self,
+        order_id: str,
+        user_id: str,
+        gateway_order_id: str,
+        item_type: str,
+        amount_inr: int,
+        item_ref_id: Optional[str] = None,
+        currency: str = "INR",
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        now = datetime.now(timezone.utc).isoformat()
+        cursor.execute("""
+            INSERT INTO payment_orders (
+                order_id, user_id, gateway_order_id, item_type, item_ref_id,
+                amount_inr, currency, status, metadata_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'created', ?, ?)
+        """, (
+            order_id, user_id, gateway_order_id, item_type, item_ref_id,
+            amount_inr, currency, json.dumps(metadata or {}), now
+        ))
+        conn.commit()
+        return {
+            "order_id": order_id,
+            "user_id": user_id,
+            "gateway_order_id": gateway_order_id,
+            "item_type": item_type,
+            "item_ref_id": item_ref_id,
+            "amount_inr": amount_inr,
+            "currency": currency,
+            "status": "created",
+            "created_at": now
+        }
+
+    def get_payment_order(self, order_id: str) -> Optional[Dict[str, Any]]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM payment_orders WHERE order_id = ?", (order_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        d = dict(row)
+        d["metadata"] = json.loads(d["metadata_json"]) if d["metadata_json"] else {}
+        return d
+
+    def get_payment_order_by_gateway_id(self, gateway_order_id: str) -> Optional[Dict[str, Any]]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM payment_orders WHERE gateway_order_id = ?", (gateway_order_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        d = dict(row)
+        d["metadata"] = json.loads(d["metadata_json"]) if d["metadata_json"] else {}
+        return d
+
+    def update_payment_order_status(
+        self,
+        order_id: str,
+        status: str,
+        signature: Optional[str] = None,
+        paid_at: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        now = paid_at or (datetime.now(timezone.utc).isoformat() if status == "paid" else None)
+        cursor.execute("""
+            UPDATE payment_orders
+            SET status = ?, signature = COALESCE(?, signature), paid_at = COALESCE(?, paid_at)
+            WHERE order_id = ?
+        """, (status, signature, now, order_id))
+        conn.commit()
+        return self.get_payment_order(order_id)
+
+    def create_invoice(
+        self,
+        invoice_id: str,
+        order_id: str,
+        user_id: str,
+        customer_name: Optional[str],
+        customer_state: str,
+        base_amount_inr: int,
+        cgst_inr: int,
+        sgst_inr: int,
+        igst_inr: int,
+        total_amount_inr: int,
+        invoice_pdf_url: Optional[str] = None
+    ) -> Dict[str, Any]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        now = datetime.now(timezone.utc).isoformat()
+        cursor.execute("""
+            INSERT OR REPLACE INTO invoices (
+                invoice_id, order_id, user_id, customer_name, customer_state,
+                sac_code, base_amount_inr, cgst_inr, sgst_inr, igst_inr,
+                total_amount_inr, invoice_pdf_url, created_at
+            ) VALUES (?, ?, ?, ?, ?, '998311', ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            invoice_id, order_id, user_id, customer_name, customer_state,
+            base_amount_inr, cgst_inr, sgst_inr, igst_inr,
+            total_amount_inr, invoice_pdf_url, now
+        ))
+        conn.commit()
+        return {
+            "invoice_id": invoice_id,
+            "order_id": order_id,
+            "user_id": user_id,
+            "sac_code": "998311",
+            "base_amount_inr": base_amount_inr,
+            "cgst_inr": cgst_inr,
+            "sgst_inr": sgst_inr,
+            "igst_inr": igst_inr,
+            "total_amount_inr": total_amount_inr,
+            "created_at": now
+        }
+
+    def list_user_invoices(self, user_id: str) -> List[Dict[str, Any]]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM invoices WHERE user_id = ? ORDER BY created_at DESC", (user_id,))
+        return [dict(row) for row in cursor.fetchall()]
+
+    def add_collective_contribution(
+        self,
+        contribution_id: str,
+        cluster_id: str,
+        user_id: str,
+        order_id: str,
+        amount_inr: int,
+        status: str = "pledged"
+    ) -> Dict[str, Any]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        now = datetime.now(timezone.utc).isoformat()
+        cursor.execute("""
+            INSERT INTO collective_pool_contributions (
+                contribution_id, cluster_id, user_id, order_id, amount_inr, status, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (contribution_id, cluster_id, user_id, order_id, amount_inr, status, now))
+        conn.commit()
+        return {
+            "contribution_id": contribution_id,
+            "cluster_id": cluster_id,
+            "user_id": user_id,
+            "order_id": order_id,
+            "amount_inr": amount_inr,
+            "status": status,
+            "created_at": now
+        }
+
+    def get_cluster_contributions(self, cluster_id: str) -> List[Dict[str, Any]]:
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM collective_pool_contributions WHERE cluster_id = ? ORDER BY created_at ASC", (cluster_id,))
+        return [dict(row) for row in cursor.fetchall()]
+
+    # --- Entitlement Checkers ---
+    def check_user_has_active_pro(self, user_id: str) -> bool:
+        """Checks if user has an active Pro, Advocate, or Enterprise subscription."""
+        if not user_id:
+            return False
+        sub = self.get_user_subscription(user_id)
+        if not sub:
+            return False
+        if sub.get("status") != "active":
+            return False
+        end_time_str = sub.get("current_period_end")
+        if not end_time_str:
+            return False
+        try:
+            end_dt = datetime.fromisoformat(end_time_str.replace("Z", "+00:00"))
+            return end_dt > datetime.now(timezone.utc)
+        except Exception:
+            return False
+
+    def check_user_has_unlocked_item(self, user_id: str, item_ref_id_or_feature: str) -> bool:
+        """Checks if user made a paid one-time microtransaction for a specific case/document."""
+        if not user_id or not item_ref_id_or_feature:
+            return False
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT COUNT(*) FROM payment_orders
+            WHERE user_id = ? AND status = 'paid'
+            AND (item_ref_id = ? OR item_type = ?)
+        """, (user_id, item_ref_id_or_feature, item_ref_id_or_feature))
+        count = cursor.fetchone()[0]
+        return count > 0
 
 
 db = DatabaseManager()

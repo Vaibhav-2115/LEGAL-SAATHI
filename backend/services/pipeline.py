@@ -110,8 +110,21 @@ class LegalSaathiPipeline:
             retrieved_chunks=retrieved_chunks
         )
 
-        # Step 9: Action Routing
-        suggested_action = self._determine_suggested_action(classification.issue_type, active_case_id)
+        # Step 9: Entitlement & Revenue Resolution
+        user_id = db.get_or_create_session(session_id).get("user_id") or f"usr_{session_id}"
+        is_pro = db.check_user_has_active_pro(user_id)
+        user_tier = "pro" if is_pro else "civic"
+
+        # Step 10: Action Routing with Pricing & Collective Pattern Detection
+        suggested_action = self._determine_suggested_action(
+            issue_type=classification.issue_type,
+            case_id=active_case_id,
+            user_id=user_id,
+            location=normalized_entities.location,
+            is_pro=is_pro
+        )
+
+        is_entitled = True if is_pro else (not suggested_action.is_premium)
 
         return ChatResponse(
             answer=answer_text,
@@ -121,28 +134,78 @@ class LegalSaathiPipeline:
             session_id=session_id,
             case_id=active_case_id,
             issue_type=classification.issue_type,
-            urgency=classification.urgency
+            urgency=classification.urgency,
+            user_tier=user_tier,
+            is_entitled=is_entitled
         )
 
-    def _determine_suggested_action(self, issue_type: str, case_id: str) -> SuggestedAction:
-        """Determines the most logical concrete next step based on the case type."""
+    def _determine_suggested_action(
+        self,
+        issue_type: str,
+        case_id: str,
+        user_id: Optional[str] = None,
+        location: Optional[str] = None,
+        is_pro: bool = False
+    ) -> SuggestedAction:
+        """
+        Determines the most logical concrete next step based on the case type,
+        incorporating collective action dockets and transparent monetization tiers.
+        """
+        # 1. Collective Pattern Detection: Check if active incident cluster matches
+        if location:
+            try:
+                clusters = db.list_clusters()
+                for cl in clusters:
+                    if cl.get("issue_type") == issue_type and cl.get("member_count", 0) >= 2:
+                        loc_bucket = cl.get("locality_bucket", "").lower()
+                        if loc_bucket in location.lower() or location.lower() in loc_bucket:
+                            cluster_id = cl["cluster_id"]
+                            return SuggestedAction(
+                                type="collective",
+                                action_id=f"act_col_{cluster_id}",
+                                title="Join Collective Action Docket (Shared Cost Pool)",
+                                description=(
+                                    f"Detected {cl['member_count']} similar complaints in {cl['locality_bucket']}. "
+                                    f"Pledge ₹499 to join the group conciliation docket instead of individual lawyer expenses."
+                                ),
+                                endpoint="/api/v1/billing/collective/pledge",
+                                payload={"cluster_id": cluster_id, "case_id": case_id},
+                                is_premium=not is_pro,
+                                cost_inr=0 if is_pro else 499,
+                                entitlement_feature="collective_docket",
+                                checkout_url=None if is_pro else f"/api/v1/billing/checkout?item_type=collective_docket&item_ref_id={cluster_id}"
+                            )
+            except Exception as e:
+                logger.warning(f"Error checking collective cluster matching: {e}")
+
+        # 2. Standard Issue-specific Action Routing
         if issue_type == "consumer":
+            has_unlocked = is_pro or (bool(user_id) and db.check_user_has_unlocked_item(user_id, "notice_draft"))
             return SuggestedAction(
                 type="notice",
                 action_id=f"act_notice_{case_id}",
                 title="Draft Formal Legal Notice to Merchant/Service Provider",
                 description="Generate a cited statutory 15-day notice claiming deficiency of service under Consumer Protection Act.",
                 endpoint="/api/v1/actions/notice",
-                payload={"case_id": case_id, "issue_type": "consumer"}
+                payload={"case_id": case_id, "issue_type": "consumer"},
+                is_premium=not has_unlocked,
+                cost_inr=0 if has_unlocked else 199,
+                entitlement_feature="notice_draft",
+                checkout_url=None if has_unlocked else f"/api/v1/billing/checkout?item_type=notice_draft&item_ref_id={case_id}"
             )
         elif issue_type == "property_rera":
+            has_unlocked = is_pro or (bool(user_id) and db.check_user_has_unlocked_item(user_id, "notice_draft"))
             return SuggestedAction(
                 type="notice",
                 action_id=f"act_notice_{case_id}",
                 title="Draft Statutory RERA Delay Demand Notice",
                 description="Demand refund with prescribed interest or immediate completion under RERA Section 18.",
                 endpoint="/api/v1/actions/notice",
-                payload={"case_id": case_id, "issue_type": "property_rera"}
+                payload={"case_id": case_id, "issue_type": "property_rera"},
+                is_premium=not has_unlocked,
+                cost_inr=0 if has_unlocked else 199,
+                entitlement_feature="notice_draft",
+                checkout_url=None if has_unlocked else f"/api/v1/billing/checkout?item_type=notice_draft&item_ref_id={case_id}"
             )
         elif issue_type == "tenancy":
             return SuggestedAction(
@@ -151,25 +214,37 @@ class LegalSaathiPipeline:
                 title="Generate Tenant Protection Evidence Checklist",
                 description="Check needed proof to resist illegal lockout, power cuts, or security deposit withholding.",
                 endpoint="/api/v1/actions/checklist",
-                payload={"case_id": case_id, "issue_type": "tenancy"}
+                payload={"case_id": case_id, "issue_type": "tenancy"},
+                is_premium=False,
+                cost_inr=0
             )
         elif issue_type == "rti":
+            has_unlocked = is_pro or (bool(user_id) and db.check_user_has_unlocked_item(user_id, "rti_draft"))
             return SuggestedAction(
                 type="rti",
                 action_id=f"act_rti_{case_id}",
                 title="Prepare Formal RTI Section 6(1) Application",
                 description="Draft targeted questions to the Public Information Officer (PIO) with fee exemption guidelines.",
                 endpoint="/api/v1/actions/rti",
-                payload={"case_id": case_id}
+                payload={"case_id": case_id},
+                is_premium=not has_unlocked,
+                cost_inr=0 if has_unlocked else 199,
+                entitlement_feature="rti_draft",
+                checkout_url=None if has_unlocked else f"/api/v1/billing/checkout?item_type=rti_draft&item_ref_id={case_id}"
             )
         elif issue_type == "cyber_fraud":
+            has_unlocked = is_pro or (bool(user_id) and db.check_user_has_unlocked_item(user_id, "efir_draft"))
             return SuggestedAction(
                 type="efir",
                 action_id=f"act_efir_{case_id}",
                 title="e-FIR & Cyber Incident Guidance",
                 description="Steps to freeze fraudulent UPI/bank transfers via helpline 1930 & cybercrime.gov.in.",
                 endpoint="/api/v1/actions/efir",
-                payload={"case_id": case_id}
+                payload={"case_id": case_id},
+                is_premium=not has_unlocked,
+                cost_inr=0 if has_unlocked else 199,
+                entitlement_feature="efir_draft",
+                checkout_url=None if has_unlocked else f"/api/v1/billing/checkout?item_type=efir_draft&item_ref_id={case_id}"
             )
         else:
             return SuggestedAction(
@@ -178,7 +253,9 @@ class LegalSaathiPipeline:
                 title="Locate Free Legal Aid (DLSA)",
                 description="Check eligibility for free government legal representation under Section 12 of LSAA.",
                 endpoint="/api/v1/actions/dlsa",
-                payload={"case_id": case_id}
+                payload={"case_id": case_id},
+                is_premium=False,
+                cost_inr=0
             )
 
 

@@ -5,16 +5,18 @@ Per Section 8 & 12 of the Technical Blueprint.
 """
 
 from typing import List
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from backend.data.db import db
+from backend.safety.rate_limiter import rate_limit_dependency
 from backend.schemas.clustering import ClusterGroup, ClusterRunRequest, ClusterRunResponse
 from backend.services.engine.clustering import engine
 
 router = APIRouter(tags=["Clustering"])
 
 
-@router.post("/clustering/run", response_model=ClusterRunResponse)
+@router.post("/clustering/run", response_model=ClusterRunResponse, dependencies=[Depends(rate_limit_dependency)])
 def trigger_clustering(payload: ClusterRunRequest):
+
     """
     Executes unsupervised similarity clustering across all consented incident records.
     Produces explained cluster groups for collective legal action.

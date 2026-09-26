@@ -1,0 +1,77 @@
+[
+  {
+    "document_id": "cluster_bengaluru_deposit_withhold_01",
+    "document_type": "incident_cluster",
+    "title": "Collective Incident Pattern: Tenancy - Bengaluru_Bellandur_OuterRingRoad",
+    "jurisdiction": "India",
+    "state": "Bengaluru",
+    "court": null,
+    "language": "en",
+    "date": "2026-09-01",
+    "act": null,
+    "section": null,
+    "case_number": null,
+    "citation": "Legal Saathi Engine Cluster cluster_bengaluru_deposit_withhold_01",
+    "text": "Legal Saathi Incident Cluster: TENANCY in Bengaluru_Bellandur_OuterRingRoad\nCluster ID: cluster_bengaluru_deposit_withhold_01\nAffected Parties Count: 8\nAmount Range: 1_to_2_lakh\nIncident Summary: Multiple software professionals reported arbitrary 100% deductions of security deposits (averaging Rs. 1,40,000) citing routine painting and unproven wear-and-tear in Bellandur, Bengaluru upon vacating on 1-month notice.\nCollective Action Pathways: Joint conciliation representation to Rent Authority / BBMP Ward Legal Cell; Consolidated legal notice on behalf of affected tenants; Model Tenancy Act Section 13(1) invocation (residential deposit capped at 2 months' rent)\nOpposing Party Identifier Hash: 91b36712ca0699ab",
+    "summary": "Multiple software professionals reported arbitrary 100% deductions of security deposits (averaging Rs. 1,40,000) citing routine painting and unproven wear-and-tear in Bellandur, Bengaluru upon vacating on 1-month notice.",
+    "source_url": "legal-saathi://engine/clusters",
+    "source_dataset": "Legal Saathi Collective Action Engine",
+    "license": "Proprietary Synthetic (Privacy Preserving)",
+    "status": "current",
+    "quality_score": 1.0,
+    "quality_flags": [
+      "synthetic_incident_cluster",
+      "tenancy"
+    ]
+  },
+  {
+    "document_id": "cluster_mumbai_rera_delay_01",
+    "document_type": "incident_cluster",
+    "title": "Collective Incident Pattern: Property - Mumbai_Thane_Ghodbunder",
+    "jurisdiction": "India",
+    "state": "Mumbai",
+    "court": null,
+    "language": "en",
+    "date": "2026-09-01",
+    "act": null,
+    "section": null,
+    "case_number": null,
+    "citation": "Legal Saathi Engine Cluster cluster_mumbai_rera_delay_01",
+    "text": "Legal Saathi Incident Cluster: PROPERTY in Mumbai_Thane_Ghodbunder\nCluster ID: cluster_mumbai_rera_delay_01\nAffected Parties Count: 14\nAmount Range: 50_to_100_lakh\nIncident Summary: Group of home-buyers in Ghodbunder Road, Thane facing 42 months possession delay past RERA registered handover date without payment of delayed possession interest.\nCollective Action Pathways: Joint complaint under MahaRERA Section 31 for delay interest; Escalation to MahaRERA Conciliation Forum; Alternative demand for full refund with interest if occupancy certificate is refused\nOpposing Party Identifier Hash: bb76bc7dd14a7286",
+    "summary": "Group of home-buyers in Ghodbunder Road, Thane facing 42 months possession delay past RERA registered handover date without payment of delayed possession interest.",
+    "source_url": "legal-saathi://engine/clusters",
+    "source_dataset": "Legal Saathi Collective Action Engine",
+    "license": "Proprietary Synthetic (Privacy Preserving)",
+    "status": "current",
+    "quality_score": 1.0,
+    "quality_flags": [
+      "synthetic_incident_cluster",
+      "property"
+    ]
+  },
+  {
+    "document_id": "cluster_ecommerce_refund_denial_01",
+    "document_type": "incident_cluster",
+    "title": "Collective Incident Pattern: Consumer - Pan_India_ECommerce",
+    "jurisdiction": "India",
+    "state": "Pan",
+    "court": null,
+    "language": "en",
+    "date": "2026-09-01",
+    "act": null,
+    "section": null,
+    "case_number": null,
+    "citation": "Legal Saathi Engine Cluster cluster_ecommerce_refund_denial_01",
+    "text": "Legal Saathi Incident Cluster: CONSUMER in Pan_India_ECommerce\nCluster ID: cluster_ecommerce_refund_denial_01\nAffected Parties Count: 22\nAmount Range: 25k_to_50k\nIncident Summary: Customers across Delhi, Hyderabad, and Pune reporting unilateral order cancellations with payment deducted and unfulfilled refunds exceeding 30 days.\nCollective Action Pathways: Class action complaint through Central Consumer Protection Authority (CCPA); e-Daakhil filing before District Consumer Forum under CPA Section 35; Claim for compensation for unfair trade practice and mental agony\nOpposing Party Identifier Hash: d416ca627b524a52",
+    "summary": "Customers across Delhi, Hyderabad, and Pune reporting unilateral order cancellations with payment deducted and unfulfilled refunds exceeding 30 days.",
+    "source_url": "legal-saathi://engine/clusters",
+    "source_dataset": "Legal Saathi Collective Action Engine",
+    "license": "Proprietary Synthetic (Privacy Preserving)",
+    "status": "current",
+    "quality_score": 1.0,
+    "quality_flags": [
+      "synthetic_incident_cluster",
+      "consumer"
+    ]
+  }
+]

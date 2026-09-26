@@ -38,11 +38,32 @@ async def chat_endpoint(
             detail={"error": "invalid_input", "message": injection_msg}
         )
 
-    # 3. Session Resolution
-    active_session_id = payload.session_id or current_session_id
+    # 3. Session Resolution & Validation
+    active_session_id = current_session_id
+    if payload.session_id:
+        from backend.core.auth import SESSION_ID_PATTERN, enforce_case_ownership
+        if len(payload.session_id) > 64 or not SESSION_ID_PATTERN.match(payload.session_id):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={"error": "invalid_session_id", "message": "Invalid session_id format."}
+            )
+        active_session_id = payload.session_id
+    else:
+        from backend.core.auth import enforce_case_ownership
+
     db.get_or_create_session(active_session_id, lang=payload.lang)
 
-    # 4. Pipeline Execution
+    # 4. Case Ownership Verification (if case_id provided)
+    if payload.case_id:
+        case = db.get_case(payload.case_id)
+        if not case:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"error": "case_not_found", "message": f"Case '{payload.case_id}' was not found."}
+            )
+        enforce_case_ownership(case.session_id, active_session_id)
+
+    # 5. Pipeline Execution
     try:
         response = await pipeline.process_chat(
             text=clean_text,

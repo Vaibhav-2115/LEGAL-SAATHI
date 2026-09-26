@@ -7,7 +7,8 @@ Per Section 12 & Part 5 of the Roadmap.
 
 from datetime import datetime, timedelta, timezone
 import uuid
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
+from backend.core.auth import enforce_case_ownership, get_current_session
 from backend.data.db import db
 from backend.schemas.actions import NoticeRequest, NoticeResponse
 
@@ -15,10 +16,23 @@ router = APIRouter(tags=["Action Modules"])
 
 
 @router.post("/actions/notice", response_model=NoticeResponse)
-def draft_legal_notice(payload: NoticeRequest):
+def draft_legal_notice(
+    payload: NoticeRequest,
+    current_session_id: str = Depends(get_current_session)
+):
     """
     Drafts a comprehensive formal Indian legal notice.
+    Verifies case ownership if case_id is provided.
     """
+    if payload.case_id:
+        case = db.get_case(payload.case_id)
+        if not case:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"error": "case_not_found", "message": f"Case '{payload.case_id}' was not found."}
+            )
+        enforce_case_ownership(case.session_id, current_session_id)
+
     draft_id = f"draft_not_{uuid.uuid4().hex[:10]}"
     now_utc = datetime.now(timezone.utc)
     date_str = now_utc.strftime("%d-%m-%Y")
@@ -80,13 +94,35 @@ Advocate / Authorized Signatory
 (On behalf of {payload.sender_name})
 """
 
+    user_id = db.get_or_create_session(current_session_id).get("user_id") or current_session_id
+    is_pro = db.check_user_has_active_pro(user_id)
+    is_unlocked_item = db.check_user_has_unlocked_item(user_id, "notice_draft") or bool(payload.case_id and db.check_user_has_unlocked_item(user_id, payload.case_id))
+    is_unlocked = is_pro or is_unlocked_item
+
+    final_draft_text = notice_body
+    watermarked = False
+    checkout_url = None
+
+    if not is_unlocked:
+        watermarked = True
+        watermark_header = (
+            "================================================================================\n"
+            "   LEGAL SAATHI — DRAFT PREVIEW (UNLOCKED COPY AVAILABLE)\n"
+            "   Upgrade to Saathi Pro (₹149/mo) or unlock this formal notice for ₹199.\n"
+            "   Unlocked documents include clean legal formatting, bar-compliant disclaimers,\n"
+            "   and direct postal tracking automation.\n"
+            "================================================================================\n\n"
+        )
+        final_draft_text = watermark_header + notice_body
+        checkout_url = f"/api/v1/billing/checkout?item_type=notice_draft&item_ref_id={payload.case_id or draft_id}"
+
     saved_draft = db.save_draft(
         draft_id=draft_id,
         case_id=payload.case_id,
         action_type="notice",
         title=f"Legal Notice - {payload.recipient_name}",
-        content=notice_body,
-        metadata={"statutory_days": payload.statutory_notice_days, "applicable_act": applicable_act}
+        content=final_draft_text,
+        metadata={"statutory_days": payload.statutory_notice_days, "applicable_act": applicable_act, "is_unlocked": is_unlocked}
     )
 
     instructions = [
@@ -100,9 +136,46 @@ Advocate / Authorized Signatory
         draft_id=draft_id,
         case_id=payload.case_id,
         notice_title=f"Statutory Notice to {payload.recipient_name}",
-        draft_text=notice_body,
+        draft_text=final_draft_text,
         applicable_act=applicable_act,
         statutory_warning=f"Strict compliance required within {payload.statutory_notice_days} days.",
         filing_instructions=instructions,
-        created_at=saved_draft["created_at"]
+        created_at=saved_draft["created_at"],
+        is_unlocked=is_unlocked,
+        watermarked=watermarked,
+        price_inr=199,
+        checkout_url=checkout_url
     )
+
+
+@router.post("/actions/notice/pdf")
+def export_notice_pdf(
+    payload: NoticeRequest,
+    current_session_id: str = Depends(get_current_session)
+):
+    """
+    Dedicated endpoint for court-ready watermark-free PDF generation.
+    Enforces strict paywall entitlement (Saathi Pro or ₹199 draft purchase).
+    """
+    from backend.core.entitlements import require_entitlement
+    # Explicitly check entitlement for this feature
+    user_id = db.get_or_create_session(current_session_id).get("user_id") or current_session_id
+    if not (db.check_user_has_active_pro(user_id) or db.check_user_has_unlocked_item(user_id, "notice_draft")):
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail={
+                "error": "PAYMENT_REQUIRED",
+                "message": "Downloading court-ready PDF notices requires Saathi Pro or a one-time draft purchase (₹199).",
+                "feature": "notice_draft",
+                "price_inr": 199,
+                "checkout_url": "/api/v1/billing/checkout"
+            }
+        )
+
+    return {
+        "status": "success",
+        "case_id": payload.case_id,
+        "format": "application/pdf",
+        "download_url": f"/api/v1/actions/notice/{payload.case_id or 'draft'}/download.pdf",
+        "message": "Watermark-free PDF dossier prepared successfully."
+    }

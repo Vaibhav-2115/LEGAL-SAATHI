@@ -17,7 +17,10 @@ def test_engine_incident_similarity_and_clustering():
             "amount": 4500000
         }
     }
-    resp1 = client.post("/cases", json=case_1_payload)
+    headers_1 = {"X-Session-ID": "citizen_sess_supertech_1"}
+    headers_2 = {"X-Session-ID": "citizen_sess_supertech_2"}
+
+    resp1 = client.post("/cases", json=case_1_payload, headers=headers_1)
     case_1_id = resp1.json()["case_id"]
 
     case_2_payload = {
@@ -30,17 +33,18 @@ def test_engine_incident_similarity_and_clustering():
             "amount": 5000000
         }
     }
-    resp2 = client.post("/cases", json=case_2_payload)
+    resp2 = client.post("/cases", json=case_2_payload, headers=headers_2)
     case_2_id = resp2.json()["case_id"]
 
-    # 2. Submit both cases as consented Incidents
-    inc1 = client.post("/incidents", json={"case_id": case_1_id, "consent_flag": True})
+    # 2. Submit both cases as consented Incidents by their respective owners
+    inc1 = client.post("/incidents", json={"case_id": case_1_id, "consent_flag": True}, headers=headers_1)
     assert inc1.status_code == 200
     inc_1_id = inc1.json()["incident_id"]
 
-    inc2 = client.post("/incidents", json={"case_id": case_2_id, "consent_flag": True})
+    inc2 = client.post("/incidents", json={"case_id": case_2_id, "consent_flag": True}, headers=headers_2)
     assert inc2.status_code == 200
     inc_2_id = inc2.json()["incident_id"]
+
 
     # 3. Check similarity endpoint
     sim_resp = client.get(f"/incidents/{inc_1_id}/similar")

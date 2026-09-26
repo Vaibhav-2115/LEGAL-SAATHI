@@ -20,14 +20,17 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     
-    # CORS
+    # CORS - Explicit trusted origins only (no wildcard with credentials)
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "*"
+        "http://127.0.0.1:8000"
     ]
+
+    # Cryptographic & Security Keys
+    SECRET_KEY: str = "dev-insecure-secret-key-change-in-production"
+    MAX_AUDIO_UPLOAD_BYTES: int = 25 * 1024 * 1024  # 25MB
 
     # AI / LLM Configuration
     GEMINI_API_KEY: str = ""
@@ -51,6 +54,12 @@ class Settings(BaseSettings):
 
     # Persistence
     DATABASE_PATH: str = "legal_saathi.db"
+
+    # Payment Gateway Configuration (Razorpay / Cashfree)
+    RAZORPAY_KEY_ID: str = "rzp_test_mock_legal_saathi"
+    RAZORPAY_KEY_SECRET: str = "rzp_test_secret_legal_saathi"
+    RAZORPAY_WEBHOOK_SECRET: str = "rzp_test_webhook_secret"
+    ENABLE_MOCK_PAYMENTS: bool = True
 
 
 settings = Settings()

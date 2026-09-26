@@ -10,6 +10,7 @@ from .clustering import router as clustering_router
 from .actions import actions_router
 from .voice import router as voice_router
 from .analytics import router as analytics_router
+from .billing import router as billing_router
 
 __all__ = [
     "health_router",
@@ -22,5 +23,6 @@ __all__ = [
     "clustering_router",
     "actions_router",
     "voice_router",
-    "analytics_router"
+    "analytics_router",
+    "billing_router"
 ]

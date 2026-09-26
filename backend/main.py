@@ -23,7 +23,8 @@ from backend.routers import (
     clustering_router,
     actions_router,
     voice_router,
-    analytics_router
+    analytics_router,
+    billing_router
 )
 
 
@@ -43,14 +44,29 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# 1. Configure CORS
+# 1. Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(self), camera=()"
+    if settings.ENVIRONMENT == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
+
+# 2. Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Session-ID"],
 )
+
 
 
 # 2. Centralized Error Handler (Matching Part 7 Error Contract: { "error": "...", "code": ... })
@@ -79,7 +95,8 @@ routers = [
     clustering_router,
     actions_router,
     voice_router,
-    analytics_router
+    analytics_router,
+    billing_router
 ]
 
 for r in routers:

@@ -8,7 +8,7 @@ Per Part 7 of the Roadmap.
 from typing import List, Optional
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
-from backend.core.auth import get_current_session, verify_case_ownership
+from backend.core.auth import enforce_case_ownership, get_current_session
 from backend.data.db import db
 from backend.schemas.case import CaseCreate, CaseResponse, CaseUpdate, EvidenceItem
 from backend.services.engine.normalization import normalize_entities
@@ -21,8 +21,8 @@ def create_case(
     payload: CaseCreate,
     current_session_id: str = Depends(get_current_session)
 ):
-    """Creates a new structured Case object."""
-    active_session_id = payload.session_id or current_session_id
+    """Creates a new structured Case object bounded to the authenticated session."""
+    active_session_id = current_session_id
     case_id = f"case_{uuid.uuid4().hex[:10]}"
     
     # Normalize entities if provided
@@ -51,7 +51,7 @@ def create_case(
 
 @router.get("/cases", response_model=List[CaseResponse])
 def list_cases(current_session_id: str = Depends(get_current_session)):
-    """Lists cases belonging to the active session."""
+    """Lists cases belonging strictly to the active session."""
     return db.list_cases(session_id=current_session_id)
 
 
@@ -67,6 +67,7 @@ def get_case_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error": "case_not_found", "message": f"Case '{case_id}' was not found."}
         )
+    enforce_case_ownership(case.session_id, current_session_id)
     return case
 
 
@@ -76,13 +77,14 @@ def update_case(
     payload: CaseUpdate,
     current_session_id: str = Depends(get_current_session)
 ):
-    """Partially updates a Case (e.g. updating evidence item status, consent, or details)."""
+    """Partially updates a Case with strict ownership verification."""
     existing_case = db.get_case(case_id)
     if not existing_case:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error": "case_not_found", "message": f"Case '{case_id}' was not found."}
         )
+    enforce_case_ownership(existing_case.session_id, current_session_id)
 
     # Merge updates
     updated_issue_type = payload.issue_type or existing_case.issue_type
@@ -106,3 +108,21 @@ def update_case(
         consent_status=updated_consent
     )
     return saved
+
+
+@router.delete("/cases/{case_id}", status_code=status.HTTP_200_OK)
+def delete_case(
+    case_id: str,
+    current_session_id: str = Depends(get_current_session)
+):
+    """Deletes a Case with strict ownership verification."""
+    existing_case = db.get_case(case_id)
+    if not existing_case:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": "case_not_found", "message": f"Case '{case_id}' was not found."}
+        )
+    enforce_case_ownership(existing_case.session_id, current_session_id)
+    db.delete_case(case_id=case_id, session_id=current_session_id)
+    return {"status": "success", "message": f"Case '{case_id}' has been permanently deleted."}
+

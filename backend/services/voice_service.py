@@ -7,14 +7,110 @@ Per Section 6.2 of the Technical Blueprint.
 """
 
 import base64
+import ipaddress
 import os
 import re
+import socket
 import tempfile
 from typing import Optional, Tuple
+import urllib.parse
 
 from backend.core.config import settings
 from backend.core.logging import logger
 from backend.schemas.voice import STTResponse, TTSResponse
+
+# Whisper API maximum audio limit (25MB)
+MAX_AUDIO_BYTES = 25 * 1024 * 1024
+
+
+def is_safe_public_url(url: str) -> Tuple[bool, str]:
+    """
+    Validates that a URL uses http/https and does NOT resolve to
+    localhost, private IP networks, loopbacks, link-local metadata addresses, or cloud internal IPs.
+    Prevents Server-Side Request Forgery (SSRF - SEC-007).
+    """
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return False, f"Unsupported scheme '{parsed.scheme}'. Only http and https are allowed."
+        
+        hostname = parsed.hostname
+        if not hostname:
+            return False, "Invalid URL: missing hostname."
+
+        clean_host = hostname.strip("[]").lower()
+
+        # Reject obvious local/internal names
+        if clean_host in ("localhost", "127.0.0.1", "0.0.0.0", "::1", "metadata.google.internal"):
+            return False, "Access to localhost or internal metadata is blocked."
+
+        # Resolve hostname to IP addresses
+        addr_info = socket.getaddrinfo(clean_host, None)
+        for entry in addr_info:
+            ip_str = entry[4][0]
+            ip = ipaddress.ip_address(ip_str)
+            if (
+                ip.is_private or
+                ip.is_loopback or
+                ip.is_link_local or
+                ip.is_multicast or
+                ip.is_reserved or
+                ip.is_unspecified
+            ):
+                return False, f"Access to private/internal network IP ({ip_str}) is forbidden."
+            
+            # Explicitly guard cloud link-local metadata endpoint (AWS/GCP/Azure)
+            if ip_str == "169.254.169.254":
+                return False, "Access to cloud metadata endpoints is forbidden."
+
+        return True, ""
+    except Exception as e:
+        return False, f"URL validation failed: {e}"
+
+
+def safe_fetch_audio_url(url: str, max_bytes: int = MAX_AUDIO_BYTES) -> Tuple[Optional[bytes], str]:
+    """
+    Safely fetches audio from an external URL with SSRF protection and byte-streaming ceiling.
+    """
+    is_safe, reason = is_safe_public_url(url)
+    if not is_safe:
+        logger.warning(f"SSRF prevention triggered for audio URL '{url}': {reason}")
+        return None, ".webm"
+
+    try:
+        import httpx
+        with httpx.Client(timeout=10.0, follow_redirects=False) as client:
+            with client.stream("GET", url) as response:
+                if response.status_code != 200:
+                    logger.warning(f"Audio URL fetch returned status {response.status_code}")
+                    return None, ".webm"
+
+                content_length = response.headers.get("Content-Length")
+                if content_length and int(content_length) > max_bytes:
+                    logger.warning(f"Audio URL Content-Length ({content_length}) exceeds maximum {max_bytes} bytes.")
+                    return None, ".webm"
+
+                ext = ".webm"
+                if ".wav" in url.lower():
+                    ext = ".wav"
+                elif ".mp3" in url.lower():
+                    ext = ".mp3"
+                elif ".m4a" in url.lower():
+                    ext = ".m4a"
+                elif ".ogg" in url.lower():
+                    ext = ".ogg"
+
+                downloaded = bytearray()
+                for chunk in response.iter_bytes(chunk_size=65536):
+                    downloaded.extend(chunk)
+                    if len(downloaded) > max_bytes:
+                        logger.warning(f"Audio download exceeded maximum size of {max_bytes} bytes. Aborting.")
+                        return None, ext
+
+                return bytes(downloaded), ext
+    except Exception as e:
+        logger.error(f"Error fetching audio URL '{url}': {e}")
+        return None, ".webm"
 
 
 class VoiceService:
@@ -114,7 +210,7 @@ class VoiceService:
     ) -> STTResponse:
         """
         Main entry point for Speech-to-Text.
-        Decodes payload, invokes Whisper AI, and provides language-aware fallbacks if offline.
+        Decodes payload with size validation, invokes Whisper AI, and provides language-aware fallbacks if offline.
         """
         logger.info(f"Processing STT request with lang_hint='{lang_hint}'")
         raw_bytes = None
@@ -133,23 +229,20 @@ class VoiceService:
                     ext = ".m4a"
                 audio_base64 = b64_data
             try:
-                raw_bytes = base64.b64decode(audio_base64)
+                decoded = base64.b64decode(audio_base64)
+                if len(decoded) > MAX_AUDIO_BYTES:
+                    logger.warning(f"Base64 audio exceeds limit of {MAX_AUDIO_BYTES} bytes.")
+                else:
+                    raw_bytes = decoded
             except Exception as e:
                 logger.error(f"Failed to decode audio base64: {e}")
 
-        # 2. Fetch Audio URL if supplied
+        # 2. Fetch Audio URL if supplied (with SSRF protection)
         elif audio_url:
-            try:
-                import httpx
-                response = httpx.get(audio_url, timeout=10.0)
-                if response.status_code == 200:
-                    raw_bytes = response.content
-                    if ".wav" in audio_url:
-                        ext = ".wav"
-                    elif ".mp3" in audio_url:
-                        ext = ".mp3"
-            except Exception as e:
-                logger.error(f"Failed to fetch audio from URL {audio_url}: {e}")
+            fetched_bytes, fetched_ext = safe_fetch_audio_url(audio_url, max_bytes=MAX_AUDIO_BYTES)
+            if fetched_bytes:
+                raw_bytes = fetched_bytes
+                ext = fetched_ext
 
         # 3. Transcribe with Whisper AI
         if raw_bytes:
@@ -162,6 +255,7 @@ class VoiceService:
                     confidence=0.98,
                     duration_seconds=round(len(raw_bytes) / 32000.0, 1)
                 )
+
 
         # 4. Fallback (Demo / Test mode when no audio bytes or Whisper credentials missing)
         logger.info("Using smart regional fallback for STT.")

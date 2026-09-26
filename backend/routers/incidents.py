@@ -6,7 +6,8 @@ Per Section 8 & Part 7 of the Roadmap.
 """
 
 import uuid
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from backend.core.auth import enforce_case_ownership, get_current_session
 from backend.data.db import db
 from backend.schemas.incidents import IncidentCreate, IncidentResponse, SimilarIncidentItem, SimilarIncidentResponse
 from backend.services.engine.clustering import engine
@@ -15,17 +16,33 @@ router = APIRouter(tags=["Incidents / Legal Saathi Engine"])
 
 
 @router.post("/incidents", response_model=IncidentResponse)
-def submit_incident(payload: IncidentCreate):
+def submit_incident(
+    payload: IncidentCreate,
+    current_session_id: str = Depends(get_current_session)
+):
     """
     Submits a case into the anonymized Incident corpus for cross-user pattern detection.
-    Requires informed Stage 1 consent.
+    Requires informed Stage 1 consent and verified case ownership.
     """
+    if not payload.consent_flag:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "consent_required",
+                "message": "Explicit informed consent is required to anonymize and index grievance data for pattern detection."
+            }
+        )
+
     case = db.get_case(payload.case_id)
     if not case:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"error": "case_not_found", "message": f"Case '{payload.case_id}' was not found."}
         )
+
+    # SEC-002: Verify ownership of the case before allowing incident submission
+    enforce_case_ownership(case.session_id, current_session_id)
+
 
     incident_id = f"inc_{uuid.uuid4().hex[:10]}"
     entities = case.entities

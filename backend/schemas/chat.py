@@ -19,12 +19,16 @@ class Citation(BaseModel):
 
 
 class SuggestedAction(BaseModel):
-    type: Literal["checklist", "notice", "rti", "dlsa", "efir", "none"] = "none"
+    type: Literal["checklist", "notice", "rti", "dlsa", "efir", "collective", "subscription", "none"] = "none"
     action_id: Optional[str] = None
     title: str
     description: str
     endpoint: Optional[str] = None
     payload: Optional[Dict[str, Any]] = None
+    is_premium: bool = False
+    cost_inr: Optional[int] = None
+    entitlement_feature: Optional[str] = None
+    checkout_url: Optional[str] = None
 
 
 class ChatRequest(BaseModel):
@@ -46,6 +50,8 @@ class ChatResponse(BaseModel):
     case_id: Optional[str] = None
     issue_type: str = "general"
     urgency: Literal["low", "medium", "high", "emergency"] = "medium"
+    user_tier: Optional[str] = "civic"
+    is_entitled: Optional[bool] = True
     disclaimer: str = (
         "Legal Saathi provides legal information and research assistance under Indian law, "
         "not formal legal advice. Please consult an advocate or your local District Legal Services Authority (DLSA) for court representation."

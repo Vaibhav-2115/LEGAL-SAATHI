@@ -8,13 +8,14 @@ from pydantic import BaseModel, Field
 
 
 class SearchRequest(BaseModel):
-    query: str = Field(..., description="Search query or legal problem statement")
+    query: str = Field(..., min_length=1, max_length=2000, description="Search query or legal problem statement")
     corpus: Literal["acts", "judgments", "incidents", "all"] = Field(
         default="acts",
         description="Target corpus to search"
     )
     top_k: int = Field(default=5, ge=1, le=20)
-    issue_type_filter: Optional[str] = None
+    issue_type_filter: Optional[str] = Field(default=None, max_length=50)
+
 
 
 class ChunkItem(BaseModel):

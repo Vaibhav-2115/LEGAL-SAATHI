@@ -11,42 +11,43 @@ from pydantic import BaseModel, Field
 
 
 class CaseEntities(BaseModel):
-    opposing_party: Optional[str] = Field(default=None, description="Name of opposing party, landlord, merchant, or builder")
-    opposing_party_hash: Optional[str] = Field(default=None, description="SHA-256 hash for privacy-safe cross-matching")
-    location: Optional[str] = Field(default=None, description="Specific location or city")
-    locality_bucket: Optional[str] = Field(default=None, description="Coarse district/state bucket for cross-user clustering")
-    amount: Optional[float] = Field(default=None, description="Monetary claim or disputed amount in INR")
-    amount_bucket: Optional[str] = Field(default=None, description="Bucketed range (e.g. ₹25k-1L) for privacy")
-    dates: List[str] = Field(default_factory=list, description="Extracted dates or timeframe")
-    key_facts: List[str] = Field(default_factory=list, description="Bullet points of verified factual claims")
-    grievance: Optional[str] = Field(default=None, description="Primary grievance description")
+    opposing_party: Optional[str] = Field(default=None, max_length=150, description="Name of opposing party, landlord, merchant, or builder")
+    opposing_party_hash: Optional[str] = Field(default=None, max_length=64, description="SHA-256 hash for privacy-safe cross-matching")
+    location: Optional[str] = Field(default=None, max_length=150, description="Specific location or city")
+    locality_bucket: Optional[str] = Field(default=None, max_length=100, description="Coarse district/state bucket for cross-user clustering")
+    amount: Optional[float] = Field(default=None, ge=0.0, le=1_000_000_000.0, description="Monetary claim or disputed amount in INR")
+    amount_bucket: Optional[str] = Field(default=None, max_length=50, description="Bucketed range (e.g. ₹25k-1L) for privacy")
+    dates: List[str] = Field(default_factory=list, max_length=20, description="Extracted dates or timeframe")
+    key_facts: List[str] = Field(default_factory=list, max_length=30, description="Bullet points of verified factual claims")
+    grievance: Optional[str] = Field(default=None, max_length=5000, description="Primary grievance description")
 
 
 class EvidenceItem(BaseModel):
-    evidence_id: str = Field(default_factory=lambda: f"evi_{uuid.uuid4().hex[:10]}")
-    type: str = Field(default="document", description="document | photo | message | receipt | bank_statement | email | other")
-    description: str
-    status: str = Field(default="needed", description="needed | collected | verified")
-    source_filename: Optional[str] = None
+    evidence_id: str = Field(default_factory=lambda: f"evi_{uuid.uuid4().hex[:10]}", max_length=64)
+    type: str = Field(default="document", max_length=50, description="document | photo | message | receipt | bank_statement | email | other")
+    description: str = Field(..., min_length=1, max_length=500)
+    status: str = Field(default="needed", max_length=30, description="needed | collected | verified")
+    source_filename: Optional[str] = Field(default=None, max_length=255)
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class CaseCreate(BaseModel):
-    session_id: Optional[str] = None
-    issue_type: str = Field(default="general", description="tenancy | consumer | property_rera | rti | labor | family_domestic | cyber_fraud | general")
-    title: Optional[str] = None
-    description: Optional[str] = None
+    session_id: Optional[str] = Field(default=None, max_length=64)
+    issue_type: str = Field(default="general", max_length=50, description="tenancy | consumer | property_rera | rti | labor | family_domestic | cyber_fraud | general")
+    title: Optional[str] = Field(default=None, max_length=200)
+    description: Optional[str] = Field(default=None, max_length=5000)
     entities: Optional[CaseEntities] = Field(default_factory=CaseEntities)
-    consent_status: str = Field(default="pending", description="pending | granted | revoked")
+    consent_status: str = Field(default="pending", max_length=30, description="pending | granted | revoked")
 
 
 class CaseUpdate(BaseModel):
-    issue_type: Optional[str] = None
-    title: Optional[str] = None
-    description: Optional[str] = None
+    issue_type: Optional[str] = Field(default=None, max_length=50)
+    title: Optional[str] = Field(default=None, max_length=200)
+    description: Optional[str] = Field(default=None, max_length=5000)
     entities: Optional[CaseEntities] = None
     evidence: Optional[List[EvidenceItem]] = None
-    consent_status: Optional[str] = None
+    consent_status: Optional[str] = Field(default=None, max_length=30)
+
 
 
 class CaseResponse(BaseModel):

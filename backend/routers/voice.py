@@ -7,15 +7,20 @@ Endpoints:
 Per Section 6.2 & 12 of the Technical Blueprint.
 """
 
+import os
 from typing import Optional
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from backend.safety.input_validation import sanitize_filename
+from backend.safety.rate_limiter import rate_limit_dependency
 from backend.schemas.voice import STTRequest, STTResponse, TTSRequest, TTSResponse
-from backend.services.voice_service import voice_service
+from backend.services.voice_service import MAX_AUDIO_BYTES, voice_service
 
 router = APIRouter(tags=["Voice / Whisper AI"])
 
+ALLOWED_AUDIO_EXTENSIONS = {".wav", ".mp3", ".webm", ".m4a", ".ogg", ".flac"}
 
-@router.post("/voice/stt", response_model=STTResponse)
+
+@router.post("/voice/stt", response_model=STTResponse, dependencies=[Depends(rate_limit_dependency)])
 def speech_to_text(payload: STTRequest):
     """
     Transcribes audio using Whisper AI from base64 audio payload or URL.
@@ -29,18 +34,57 @@ def speech_to_text(payload: STTRequest):
     return res
 
 
-@router.post("/voice/stt/upload", response_model=STTResponse)
+@router.post("/voice/stt/upload", response_model=STTResponse, dependencies=[Depends(rate_limit_dependency)])
 async def speech_to_text_upload(
-    file: UploadFile = File(..., description="Audio file (wav, mp3, webm, m4a, ogg)"),
+    file: UploadFile = File(..., description="Audio file (wav, mp3, webm, m4a, ogg, flac)"),
     lang_hint: str = Form(default="auto")
 ):
     """
     Direct multipart file upload for Whisper AI.
-    Accepts audio recordings directly from browser microphone (MediaRecorder blob).
+    Validates file extension, bounds file size to 25MB, and sanitizes filenames.
     """
-    audio_bytes = await file.read()
-    ext = f".{file.filename.split('.')[-1]}" if file.filename and "." in file.filename else ".webm"
+    # 1. Validate file extension
+    original_filename = file.filename or "recording.webm"
+    clean_name = sanitize_filename(original_filename)
+    _, ext = os.path.splitext(clean_name.lower())
     
+    if not ext:
+        ext = ".webm"
+    elif ext not in ALLOWED_AUDIO_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "unsupported_media_type",
+                "message": f"File type '{ext}' is not supported. Allowed formats: {', '.join(sorted(ALLOWED_AUDIO_EXTENSIONS))}"
+            }
+        )
+
+    # 2. Stream and enforce size limit
+    chunk_size = 65536  # 64KB
+    byte_accumulator = bytearray()
+    
+    while True:
+        chunk = await file.read(chunk_size)
+        if not chunk:
+            break
+        byte_accumulator.extend(chunk)
+        if len(byte_accumulator) > MAX_AUDIO_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail={
+                    "error": "payload_too_large",
+                    "message": f"Audio file exceeds maximum size limit of {MAX_AUDIO_BYTES // (1024 * 1024)}MB."
+                }
+            )
+
+    audio_bytes = bytes(byte_accumulator)
+    if not audio_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": "empty_file", "message": "Uploaded audio file cannot be empty."}
+        )
+
+    # 3. Transcribe with Whisper AI
     whisper_result = voice_service.transcribe_audio_bytes(
         audio_bytes=audio_bytes,
         file_extension=ext,
@@ -63,7 +107,7 @@ async def speech_to_text_upload(
     )
 
 
-@router.post("/voice/tts", response_model=TTSResponse)
+@router.post("/voice/tts", response_model=TTSResponse, dependencies=[Depends(rate_limit_dependency)])
 def text_to_speech(payload: TTSRequest):
     """
     Synthesizes grounded legal explanation into spoken audio.
@@ -73,3 +117,4 @@ def text_to_speech(payload: TTSRequest):
         lang=payload.lang or "hi"
     )
     return res
+

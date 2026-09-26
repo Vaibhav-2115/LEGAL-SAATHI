@@ -8,9 +8,9 @@ from pydantic import BaseModel, Field
 
 
 class STTRequest(BaseModel):
-    audio_base64: Optional[str] = Field(default=None, description="Base64 encoded audio payload")
-    audio_url: Optional[str] = Field(default=None, description="Direct URL to audio file")
-    lang_hint: Optional[str] = Field(default="auto", description="hi | en | ta | te | bn | mr | gu | kn | auto")
+    audio_base64: Optional[str] = Field(default=None, max_length=35 * 1024 * 1024, description="Base64 encoded audio payload (max 25MB decoded)")
+    audio_url: Optional[str] = Field(default=None, max_length=2048, description="Direct URL to audio file")
+    lang_hint: Optional[str] = Field(default="auto", max_length=20, description="hi | en | ta | te | bn | mr | gu | kn | auto")
 
 
 class STTResponse(BaseModel):
@@ -21,9 +21,10 @@ class STTResponse(BaseModel):
 
 
 class TTSRequest(BaseModel):
-    text: str
-    lang: str = "hi"
-    voice_gender: Optional[str] = "female"
+    text: str = Field(..., min_length=1, max_length=5000, description="Text to synthesize")
+    lang: str = Field(default="hi", max_length=20)
+    voice_gender: Optional[str] = Field(default="female", max_length=20)
+
 
 
 class TTSResponse(BaseModel):

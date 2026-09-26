@@ -5,7 +5,9 @@ digital, and physical evidence needed to substantiate a legal claim.
 Per Feature D of the Technical Blueprint.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
+from backend.core.auth import enforce_case_ownership, get_current_session
+from backend.data.db import db
 from backend.schemas.actions import ChecklistRequest, ChecklistResponse
 
 router = APIRouter(tags=["Action Modules"])
@@ -80,8 +82,23 @@ CHECKLIST_DATA = {
 
 
 @router.post("/actions/checklist", response_model=ChecklistResponse)
-def get_evidence_checklist(payload: ChecklistRequest):
-    """Returns an actionable evidence checklist based on grievance issue type."""
+def get_evidence_checklist(
+    payload: ChecklistRequest,
+    current_session_id: str = Depends(get_current_session)
+):
+    """
+    Returns an actionable evidence checklist based on grievance issue type.
+    Verifies case ownership if case_id is provided.
+    """
+    if payload.case_id:
+        case = db.get_case(payload.case_id)
+        if not case:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail={"error": "case_not_found", "message": f"Case '{payload.case_id}' was not found."}
+            )
+        enforce_case_ownership(case.session_id, current_session_id)
+
     issue_type = payload.issue_type.lower()
     data = CHECKLIST_DATA.get(issue_type, CHECKLIST_DATA["general"])
 
@@ -92,3 +109,4 @@ def get_evidence_checklist(payload: ChecklistRequest):
         recommended_evidence=data["recommended"],
         verification_tips=data["tips"]
     )
+

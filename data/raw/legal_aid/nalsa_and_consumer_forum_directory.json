@@ -1,0 +1,56 @@
+{
+  "nalsa_overview": {
+    "authority": "National Legal Services Authority (NALSA)",
+    "statutory_act": "Legal Services Authorities Act, 1987",
+    "toll_free_helpline": "15100",
+    "portal": "https://nalsa.gov.in",
+    "key_functions": [
+      "Provide free and competent legal services to the eligible weaker sections of society",
+      "Organize Lok Adalats for amicable settlement of pending disputes and pre-litigation claims",
+      "Promote legal literacy and legal awareness campaigns across India"
+    ],
+    "statutory_income_ceilings_by_state": {
+      "Delhi": "Rs 3,00,000 per annum (Rs 5,00,000 for High Court / Supreme Court)",
+      "Maharashtra": "Rs 3,00,000 per annum",
+      "Karnataka": "Rs 3,00,000 per annum",
+      "Tamil Nadu": "Rs 3,00,000 per annum",
+      "Uttar Pradesh": "Rs 3,00,000 per annum",
+      "West Bengal": "Rs 3,00,000 per annum"
+    },
+    "automatic_eligibility_without_income_proof": [
+      "Women (any income)",
+      "Children under 18 (any income)",
+      "Members of Scheduled Castes (SC) or Scheduled Tribes (ST)",
+      "Persons with disability / differently abled",
+      "Victims of human trafficking or forced labour (begar)",
+      "Persons in custody / undertrial prisoners",
+      "Industrial workmen"
+    ]
+  },
+  "consumer_redressal_hierarchy": {
+    "tier_1_district": {
+      "name": "District Consumer Disputes Redressal Commission (DCDRC)",
+      "pecuniary_limit": "Value of goods/services paid up to Rs 50 Lakhs",
+      "filing_mode": "Physical at District Court or Online via e-Daakhil (edaakhil.nic.in)",
+      "limitation_period": "2 years from cause of action"
+    },
+    "tier_2_state": {
+      "name": "State Consumer Disputes Redressal Commission (SCDRC)",
+      "pecuniary_limit": "Value of goods/services paid between Rs 50 Lakhs and Rs 2 Crores",
+      "appeal_from": "Orders of District Commission within 45 days"
+    },
+    "tier_3_national": {
+      "name": "National Consumer Disputes Redressal Commission (NCDRC)",
+      "pecuniary_limit": "Value of goods/services paid exceeds Rs 2 Crores",
+      "location": "New Delhi",
+      "appeal_from": "Orders of State Commission within 30 days"
+    }
+  },
+  "helpline_directory": {
+    "National Legal Aid Helpline": "15100 (Toll Free, 24x7)",
+    "National Consumer Helpline": "1915 or SMS to 8800001915",
+    "Cyber Crime Helpline": "1930 (cybercrime.gov.in)",
+    "Women Helpline": "1091 (National) / 181 (Domestic Abuse)",
+    "Childline": "1098"
+  }
+}
