@@ -1,0 +1,66 @@
+{
+  "projectId": "16619462295473295197",
+  "projectUrl": "https://stitch.withgoogle.com/projects/16619462295473295197",
+  "resourceName": "projects/16619462295473295197",
+  "title": "Legal Saathi — Read-Only Viewer",
+  "designSystem": {
+    "name": "Civic Trust & Clarity",
+    "theme": {
+      "colorMode": "LIGHT",
+      "font": "MANROPE",
+      "headlineFont": "MANROPE",
+      "bodyFont": "INTER",
+      "roundness": "ROUND_EIGHT",
+      "primaryColor": "#1e3a8a",
+      "secondaryColor": "#2563eb",
+      "tertiaryColor": "#16a34a",
+      "neutralColor": "#0f172a"
+    }
+  },
+  "screens": [
+    {
+      "id": "94d009baf1e94a5da23a70c399a999dd",
+      "title": "Legal Saathi — Public Citizen Landing Page"
+    },
+    {
+      "id": "511ed1cefc01430c85d78eb1122c0c7d",
+      "title": "Legal Saathi — Dashboard (Ask Legal Saathi)"
+    },
+    {
+      "id": "570a324b452e43dd985c20a7ea530237",
+      "title": "Legal Saathi — Case Workspace (Security Deposit Dispute)"
+    },
+    {
+      "id": "c366d4aae05541b3a9bdeb678982a289",
+      "title": "Legal Saathi — Legal Assistant (Conversation & Workspace)"
+    },
+    {
+      "id": "2fd1969adefe4a31b98845be96439f2c",
+      "title": "Legal Saathi — My Complaints (Previous Legal Problems)"
+    },
+    {
+      "id": "bac61b048af74c1686550f9311d3f09f",
+      "title": "Legal Saathi — Legal Notice Builder (Create Notice)"
+    },
+    {
+      "id": "af53220a6b3f4d7bb7c261da73abc3d1",
+      "title": "Legal Saathi — Case Evidence Dossier"
+    },
+    {
+      "id": "ed1fb78ba0e44267bf4f5d6f74dc2c27",
+      "title": "Legal Saathi — Legal Sources (Case Grounding)"
+    },
+    {
+      "id": "1357860b8d984aff8e4d581c8001a6bd",
+      "title": "Legal Saathi — Action Center (What Can You Do Next?)"
+    },
+    {
+      "id": "036d71920e264638bc366c155d93fdf7",
+      "title": "Legal Saathi — Case Verification (Proof & Fact Matrix)"
+    },
+    {
+      "id": "979537553b7941c2ba32260fcd34e416",
+      "title": "Legal Saathi — Why This Law May Apply (Statutory Traceability)"
+    }
+  ]
+}
