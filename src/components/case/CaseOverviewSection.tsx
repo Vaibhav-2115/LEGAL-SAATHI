@@ -222,43 +222,85 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
               </span>
             </div>
 
-            <div className="flex flex-col gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-              <div className="flex items-start gap-2.5">
-                <div className="w-5 h-5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-xs">gavel</span>
-                </div>
-                <p className="leading-snug">
-                  Governed by <strong>Delhi Rent Act, 1958</strong> &amp; Section 108 of Transfer of Property Act.
-                </p>
-              </div>
+            {(() => {
+              const caseContextStr = `${currentCase.category} ${currentCase.title} ${currentCase.summary}`.toLowerCase();
+              const isBuilderCase = caseContextStr.includes('builder') || caseContextStr.includes('possession') || caseContextStr.includes('rera') || caseContextStr.includes('bba') || caseContextStr.includes('apartment');
+              const isLaborCase = caseContextStr.includes('salary') || caseContextStr.includes('wage') || caseContextStr.includes('employer');
+              const isCyberCase = caseContextStr.includes('cyber') || caseContextStr.includes('otp') || caseContextStr.includes('upi') || caseContextStr.includes('fraud');
+              const isTenancyCase = !isBuilderCase && (caseContextStr.includes('tenant') || caseContextStr.includes('landlord') || caseContextStr.includes('rent') || caseContextStr.includes('lease'));
 
-              <div className="flex items-start gap-2.5">
-                <div className="w-5 h-5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-xs">shield</span>
-                </div>
-                <p className="leading-snug">
-                  Landlord is statutorily required to refund deposit within 30 days unless itemized damage invoices are produced.
-                </p>
-              </div>
+              const governingLaw = isBuilderCase
+                ? 'Governed by Real Estate (Regulation & Development) Act, 2016 (RERA) & Consumer Protection Act, 2019.'
+                : isLaborCase
+                ? 'Governed by Code on Wages, 2019 & Industrial Disputes Act, 1947 (Section 33C).'
+                : isCyberCase
+                ? 'Governed by Information Technology Act, 2000 (Section 66D) & BNS Section 318.'
+                : isTenancyCase
+                ? 'Governed by Model Tenancy Act, 2021 & Section 108 of Transfer of Property Act, 1882.'
+                : `Governed by applicable Indian statutes under ${currentCase.category}.`;
 
-              <div className="flex items-start gap-2.5">
-                <div className="w-5 h-5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-xs">error_outline</span>
-                </div>
-                <p className="leading-snug">
-                  1 critical photo document needed to shift evidentiary burden and rebut claimed wall repaint deductions.
-                </p>
-              </div>
+              const statutoryRight = isBuilderCase
+                ? 'Promoter is statutorily liable under Section 18 of RERA for monthly delayed-possession compensation or full refund.'
+                : isLaborCase
+                ? 'Employer cannot arbitrarily withhold earned wages; withholding constitutes an unlawful deduction.'
+                : isCyberCase
+                ? 'Customer has zero liability for unauthorized electronic transactions under RBI rules if reported promptly.'
+                : isTenancyCase
+                ? 'Landlord is statutorily required to refund deposit within 30 days unless itemized damage invoices are produced.'
+                : 'Citizen is entitled to enforceable statutory protections and contractual consideration.';
 
-              <div className="flex items-start gap-2.5">
-                <div className="w-5 h-5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-xs">balance</span>
+              const criticalEvidence = isBuilderCase
+                ? 'Builder-Buyer Agreement (BBA) and payment receipts required to prove promised handover date.'
+                : isLaborCase
+                ? 'Employment letter, monthly payslips, and bank statement showing non-credit of salary.'
+                : isCyberCase
+                ? 'Transaction UTR, bank debit notification, and cyber portal acknowledgment.'
+                : isTenancyCase
+                ? 'Exit checklist and photos needed to shift evidentiary burden and rebut claimed deductions.'
+                : 'Documentary proof and written notices are needed to establish legal standing.';
+
+              const nextStepAction = isBuilderCase
+                ? 'Section 18 RERA Statutory Demand Notice is the recommended pre-litigation step.'
+                : isLaborCase
+                ? '15-Day Statutory Demand Notice for Wage Arrears is the recommended pre-litigation step.'
+                : isCyberCase
+                ? 'Immediate reporting to 1930 Cyber Helpline & bank transaction freeze requisition.'
+                : isTenancyCase
+                ? 'Section 106 Statutory Demand Notice is the recommended pre-litigation step.'
+                : 'Formal Statutory Requisition Notice is the recommended pre-litigation step.';
+
+              return (
+                <div className="flex flex-col gap-2.5 text-xs text-slate-700 dark:text-slate-300">
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-5 h-5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="material-symbols-outlined text-xs">gavel</span>
+                    </div>
+                    <p className="leading-snug">{governingLaw}</p>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-5 h-5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="material-symbols-outlined text-xs">shield</span>
+                    </div>
+                    <p className="leading-snug">{statutoryRight}</p>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-5 h-5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="material-symbols-outlined text-xs">error_outline</span>
+                    </div>
+                    <p className="leading-snug">{criticalEvidence}</p>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-5 h-5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="material-symbols-outlined text-xs">balance</span>
+                    </div>
+                    <p className="leading-snug">{nextStepAction}</p>
+                  </div>
                 </div>
-                <p className="leading-snug">
-                  Section 106 Statutory Demand Notice is the recommended pre-litigation step.
-                </p>
-              </div>
-            </div>
+              );
+            })()}
           </div>
 
           <button

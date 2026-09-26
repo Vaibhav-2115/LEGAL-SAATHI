@@ -65,44 +65,86 @@ class LegalSaathiPipeline:
         extracted_entities = extractor.extract(text)
         normalized_entities = normalize_entities(extracted_entities)
 
-        # Step 4: Persist or Update Case Record
+        # Step 4: Resolve Active Case & Context Isolation
+        existing_case = db.get_case(case_id) if case_id else None
         active_case_id = case_id or f"case_{uuid.uuid4().hex[:10]}"
-        case_title = f"{classification.issue_type.replace('_', ' ').title()} - {normalized_entities.location or 'Grievance'}"
-        
-        # Check if existing case already has evidence
-        existing_case = db.get_case(active_case_id) if case_id else None
-        evidence_list = existing_case.evidence if existing_case else [
-            EvidenceItem(type="document", description="Written contract, invoice, or agreement", status="needed"),
-            EvidenceItem(type="receipt", description="Proof of payment or transaction receipt", status="needed"),
-            EvidenceItem(type="message", description="Written communication / chat / email record", status="needed")
-        ]
 
-        saved_case = db.save_case(
-            case_id=active_case_id,
-            session_id=session_id,
-            issue_type=classification.issue_type,
-            title=case_title,
-            description=text,
-            entities=normalized_entities,
-            evidence=evidence_list,
-            consent_status=existing_case.consent_status if existing_case else "pending"
-        )
+        if existing_case:
+            # Preserve authoritative case properties — DO NOT overwrite with query text!
+            case_title = existing_case.title
+            case_desc = existing_case.description
+            # If the user query is generic ("What laws apply?"), inherit the case's authoritative issue_type
+            effective_issue_type = existing_case.issue_type if (classification.issue_type == "general" or not classification.confidence or classification.confidence < 0.70) else classification.issue_type
+            evidence_list = existing_case.evidence
+            consent_status = existing_case.consent_status
+            case_context = {
+                "case_id": active_case_id,
+                "title": case_title,
+                "issue_type": effective_issue_type,
+                "description": case_desc,
+                "evidence": [e.model_dump() for e in evidence_list]
+            }
+            # Enrich retrieval query with case facts to pull case-relevant laws
+            retrieval_query = f"{case_title} {case_desc} {text}"
+        else:
+            effective_issue_type = classification.issue_type
+            case_title = f"{classification.issue_type.replace('_', ' ').title()} - {normalized_entities.location or 'Grievance'}"
+            case_desc = text
+            evidence_list = [
+                EvidenceItem(type="document", description="Written contract, invoice, or agreement", status="needed"),
+                EvidenceItem(type="receipt", description="Proof of payment or transaction receipt", status="needed"),
+                EvidenceItem(type="message", description="Written communication / chat / email record", status="needed")
+            ]
+            consent_status = "pending"
+            case_context = {
+                "case_id": active_case_id,
+                "title": case_title,
+                "issue_type": effective_issue_type,
+                "description": case_desc,
+                "evidence": [e.model_dump() for e in evidence_list]
+            }
+            retrieval_query = text
+
+            saved_case = db.save_case(
+                case_id=active_case_id,
+                session_id=session_id,
+                issue_type=effective_issue_type,
+                title=case_title,
+                description=case_desc,
+                entities=normalized_entities,
+                evidence=evidence_list,
+                consent_status=consent_status
+            )
 
         # Step 5: Hybrid Legal Retrieval (ChromaDB semantic + BM25 lexical + RRF)
         retrieved_chunks = retrieval_service.search(
-            query=text,
+            query=retrieval_query,
             corpus="acts",
             top_k=5,
-            issue_type_filter=classification.issue_type
+            issue_type_filter=effective_issue_type
         )
 
-        # Step 6 & 7: LLM Grounded Generation (Gemini primary with local rule synthesis fallback)
-        answer_text, provider = await llm_provider.generate_grounded_answer(
+        # Step 6 & 7: LLM Grounded Generation with Case-Aware Isolation
+        raw_answer_text, provider = await llm_provider.generate_grounded_answer(
             query=text,
             context_chunks=retrieved_chunks,
-            lang=lang
+            lang=lang,
+            case_context=case_context
         )
         logger.info(f"Generated grounded answer using '{provider}'.")
+
+        # Step 7b: Output Validation Gate (Enforce domain consistency and anti-hallucination)
+        from backend.safety.output_validation import output_gate
+        is_valid, answer_text, val_warnings = output_gate.validate_and_filter(
+            answer=raw_answer_text,
+            query=text,
+            case_id=active_case_id,
+            case_title=case_title,
+            case_issue_type=effective_issue_type,
+            case_description=case_desc,
+            retrieved_chunks=retrieved_chunks,
+            lang=lang
+        )
 
         # Step 8: Citation Attachment & Confidence Scoring
         citations, confidence_badge = citation_service.attach_citations(
@@ -117,7 +159,7 @@ class LegalSaathiPipeline:
 
         # Step 10: Action Routing with Pricing & Collective Pattern Detection
         suggested_action = self._determine_suggested_action(
-            issue_type=classification.issue_type,
+            issue_type=effective_issue_type,
             case_id=active_case_id,
             user_id=user_id,
             location=normalized_entities.location,
@@ -133,7 +175,7 @@ class LegalSaathiPipeline:
             suggested_action=suggested_action,
             session_id=session_id,
             case_id=active_case_id,
-            issue_type=classification.issue_type,
+            issue_type=effective_issue_type,
             urgency=classification.urgency,
             user_tier=user_tier,
             is_entitled=is_entitled

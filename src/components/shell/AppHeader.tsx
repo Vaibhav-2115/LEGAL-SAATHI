@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLegalSaathi } from '@/context/LegalSaathiContext';
 import { useAuth } from '@/context/AuthContext';
+import { SupportedLanguage } from '@/lib/i18n/translations';
 
 interface AppHeaderProps {
   onToggleMobileMenu?: () => void;
@@ -12,10 +13,9 @@ interface AppHeaderProps {
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
   const pathname = usePathname();
-  const { darkMode, toggleDarkMode, activeCase } = useLegalSaathi();
+  const { darkMode, toggleDarkMode, activeCase, language, setLanguage, t } = useLegalSaathi();
   const { user, logout } = useAuth();
 
-  const [currentLang, setCurrentLang] = useState<'English' | 'Hindi'>('English');
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -166,40 +166,40 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
               aria-label="Select Language"
             >
               <span className="material-symbols-outlined text-sm text-slate-500">translate</span>
-              <span>{currentLang}</span>
+              <span>{language}</span>
               <span className="material-symbols-outlined text-xs text-slate-400">arrow_drop_down</span>
             </button>
 
             {langDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-32 bg-white dark:bg-[#0F1422] rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentLang('English');
-                    setLangDropdownOpen(false);
-                  }}
-                  className={`w-full px-3 py-1.5 text-xs text-left font-medium transition-colors ${
-                    currentLang === 'English'
-                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 font-bold'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#161F30]'
-                  }`}
-                >
-                  English
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentLang('Hindi');
-                    setLangDropdownOpen(false);
-                  }}
-                  className={`w-full px-3 py-1.5 text-xs text-left font-medium transition-colors ${
-                    currentLang === 'Hindi'
-                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 font-bold'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#161F30]'
-                  }`}
-                >
-                  हिन्दी (Hindi)
-                </button>
+              <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-[#0F1422] rounded-xl shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-100 max-h-64 overflow-y-auto">
+                {(
+                  [
+                    { name: 'English', label: 'English' },
+                    { name: 'Hindi', label: 'हिन्दी (Hindi)' },
+                    { name: 'Marathi', label: 'मराठी (Marathi)' },
+                    { name: 'Tamil', label: 'தமிழ் (Tamil)' },
+                    { name: 'Bengali', label: 'বাংলা (Bengali)' },
+                    { name: 'Telugu', label: 'తెలుగు (Telugu)' },
+                    { name: 'Gujarati', label: 'ગુજરાતી (Gujarati)' },
+                    { name: 'Kannada', label: 'ಕನ್ನಡ (Kannada)' },
+                  ] as Array<{ name: SupportedLanguage; label: string }>
+                ).map((item) => (
+                  <button
+                    key={item.name}
+                    type="button"
+                    onClick={() => {
+                      setLanguage(item.name);
+                      setLangDropdownOpen(false);
+                    }}
+                    className={`w-full px-3 py-1.5 text-xs text-left font-medium transition-colors ${
+                      language === item.name
+                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 font-bold'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#161F30]'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -379,7 +379,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
               }`}
             >
               <span className="material-symbols-outlined text-lg">dashboard</span>
-              <span>Home</span>
+              <span>{t.navDashboard}</span>
             </Link>
 
             <Link
@@ -392,7 +392,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
               }`}
             >
               <span className="material-symbols-outlined text-lg">folder_open</span>
-              <span>My Matters</span>
+              <span>{t.navComplaints}</span>
             </Link>
 
             <Link
@@ -405,7 +405,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
               }`}
             >
               <span className="material-symbols-outlined text-lg">forum</span>
-              <span>Legal Assistant</span>
+              <span>{t.navChat}</span>
             </Link>
 
             <Link

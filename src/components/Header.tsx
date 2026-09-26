@@ -6,15 +6,15 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useLegalSaathi } from '../context/LegalSaathiContext';
 import { useAuth } from '../context/AuthContext';
+import { SupportedLanguage } from '../lib/i18n/translations';
 
 export const Header: React.FC = () => {
   const pathname = usePathname();
-  const { darkMode, toggleDarkMode } = useLegalSaathi();
+  const { darkMode, toggleDarkMode, language, setLanguage, t } = useLegalSaathi();
   const { user, isAuthenticated, logout } = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState('English');
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const isAuthPage = pathname === '/login' || pathname === '/register';
@@ -86,9 +86,9 @@ export const Header: React.FC = () => {
             <div className="flex items-center bg-slate-100 dark:bg-[#1E293B] rounded-lg p-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
               <button
                 type="button"
-                onClick={() => setCurrentLang('English')}
+                onClick={() => setLanguage('English')}
                 className={`px-2 py-0.5 rounded transition-all ${
-                  currentLang === 'English'
+                  language === 'English'
                     ? 'bg-white dark:bg-[#0B1120] text-slate-900 dark:text-white shadow-xs'
                     : 'hover:text-slate-900 dark:hover:text-white'
                 }`}
@@ -97,9 +97,9 @@ export const Header: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setCurrentLang('Hindi')}
+                onClick={() => setLanguage('Hindi')}
                 className={`px-2 py-0.5 rounded transition-all ${
-                  currentLang === 'Hindi'
+                  language === 'Hindi'
                     ? 'bg-white dark:bg-[#0B1120] text-slate-900 dark:text-white shadow-xs'
                     : 'hover:text-slate-900 dark:hover:text-white'
                 }`}
@@ -258,22 +258,35 @@ export const Header: React.FC = () => {
               type="button"
             >
               <span className="material-symbols-outlined text-sm">translate</span>
-              <span>{currentLang}</span>
+              <span>{language}</span>
               <span className="material-symbols-outlined text-sm text-on-surface-variant">expand_more</span>
             </button>
             {langOpen && (
-              <div className="absolute right-0 mt-1 w-36 bg-surface-container-lowest dark:bg-[#0F131C] rounded-lg shadow-lg border border-outline-variant/30 dark:border-[#1E293B] py-1 z-50 text-xs">
-                {['English', 'हिन्दी (Hindi)', 'தமிழ் (Tamil)', 'বাংলা (Bengali)'].map((l) => (
+              <div className="absolute right-0 mt-1 w-44 bg-surface-container-lowest dark:bg-[#0F131C] rounded-lg shadow-lg border border-outline-variant/30 dark:border-[#1E293B] py-1 z-50 text-xs max-h-64 overflow-y-auto">
+                {(
+                  [
+                    { name: 'English', label: 'English' },
+                    { name: 'Hindi', label: 'हिन्दी (Hindi)' },
+                    { name: 'Marathi', label: 'मराठी (Marathi)' },
+                    { name: 'Tamil', label: 'தமிழ் (Tamil)' },
+                    { name: 'Bengali', label: 'বাংলা (Bengali)' },
+                    { name: 'Telugu', label: 'తెలుగు (Telugu)' },
+                    { name: 'Gujarati', label: 'ગુજરાતી (Gujarati)' },
+                    { name: 'Kannada', label: 'ಕನ್ನಡ (Kannada)' },
+                  ] as Array<{ name: SupportedLanguage; label: string }>
+                ).map((l) => (
                   <button
-                    key={l}
+                    key={l.name}
                     type="button"
                     onClick={() => {
-                      setCurrentLang(l.split(' ')[0]);
+                      setLanguage(l.name);
                       setLangOpen(false);
                     }}
-                    className="w-full text-left px-3 py-1.5 hover:bg-surface-container-high dark:hover:bg-[#161F30] text-on-surface"
+                    className={`w-full text-left px-3 py-1.5 hover:bg-surface-container-high dark:hover:bg-[#161F30] text-on-surface ${
+                      language === l.name ? 'font-bold text-blue-600 dark:text-blue-400' : ''
+                    }`}
                   >
-                    {l}
+                    {l.label}
                   </button>
                 ))}
               </div>

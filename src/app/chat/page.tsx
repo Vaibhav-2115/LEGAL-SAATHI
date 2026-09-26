@@ -8,7 +8,7 @@ import { CaseStatusBadge } from '../../components/CaseStatusBadge';
 import { VoiceState } from '../../lib/types';
 
 function ChatContent() {
-  const { activeCase, chatMessages, addChatMessage, isAnalyzing } = useLegalSaathi();
+  const { activeCase, chatMessages, addChatMessage, isAnalyzing, language, t } = useLegalSaathi();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q');
 
@@ -44,7 +44,14 @@ function ChatContent() {
           const recognition = new SpeechRecognition();
           recognition.continuous = false;
           recognition.interimResults = true;
-          recognition.lang = 'en-IN';
+          recognition.lang = language === 'Hindi' ? 'hi-IN'
+            : language === 'Tamil' ? 'ta-IN'
+            : language === 'Marathi' ? 'mr-IN'
+            : language === 'Bengali' ? 'bn-IN'
+            : language === 'Telugu' ? 'te-IN'
+            : language === 'Gujarati' ? 'gu-IN'
+            : language === 'Kannada' ? 'kn-IN'
+            : 'en-IN';
 
           recognition.onresult = (event: any) => {
             let current = '';
