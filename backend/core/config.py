@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     FALLBACK_LLM_MODEL: str = "local-grounded-synthesis"
     LLM_TIMEOUT_SECONDS: float = 8.0
 
+    # Whisper AI Configuration (STT)
+    OPENAI_API_KEY: str = ""
+    WHISPER_MODEL: str = "whisper-1"
+
     # Retrieval Configuration
     TOP_K_CHUNKS: int = 5
     HYBRID_RRF_K: int = 60
