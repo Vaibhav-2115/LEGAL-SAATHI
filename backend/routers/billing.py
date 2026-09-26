@@ -105,11 +105,17 @@ def get_subscription_status(
     sub = db.get_user_subscription(user_id)
 
     if sub and entitlements["is_pro"]:
+        period_end = sub.get("current_period_end")
+        if hasattr(period_end, "isoformat"):
+            period_end = period_end.isoformat()
+        elif period_end:
+            period_end = str(period_end)
+
         return SubscriptionStatusResponse(
             tier=sub.get("plan_tier", "pro"),
             plan_name=sub.get("plan_name", "Saathi Pro"),
             is_active=True,
-            current_period_end=sub.get("current_period_end"),
+            current_period_end=period_end,
             allowed_drafts_remaining="unlimited",
             can_export_pdf_dossier=True,
             can_access_collective_dockets=True
@@ -144,6 +150,12 @@ def list_invoices(
         igst_rs = inv["igst_inr"] / 100.0
         total_rs = inv["total_amount_inr"] / 100.0
 
+        created_at_val = inv["created_at"]
+        if hasattr(created_at_val, "isoformat"):
+            created_at_val = created_at_val.isoformat()
+        else:
+            created_at_val = str(created_at_val)
+
         res.append(InvoiceItemResponse(
             invoice_id=inv["invoice_id"],
             order_id=inv["order_id"],
@@ -155,7 +167,7 @@ def list_invoices(
             sgst_inr=sgst_rs,
             igst_inr=igst_rs,
             total_amount_inr=total_rs,
-            created_at=inv["created_at"],
+            created_at=created_at_val,
             invoice_pdf_url=inv["invoice_pdf_url"]
         ))
     return res

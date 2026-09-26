@@ -6,6 +6,8 @@ import {
   SESSION_COOKIE_NAME,
   getSessionCookieOptions,
 } from '@/lib/auth/cookies';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
@@ -19,6 +21,56 @@ export async function POST(request: Request) {
       );
     }
 
+    // 1. Attempt Supabase Auth if cloud project is configured
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = await createServerSupabaseClient();
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
+
+        if (!error && data?.user) {
+          const authUser = {
+            id: data.user.id,
+            email: data.user.email || email,
+            name:
+              (data.user.user_metadata?.full_name as string) ||
+              (data.user.user_metadata?.name as string) ||
+              email.split('@')[0],
+            role: ((data.user.user_metadata?.role as string) || 'CITIZEN') as
+              | 'CITIZEN'
+              | 'LEGAL_AID_ADVOCATE'
+              | 'DLSA_OFFICER',
+            docketId: (data.user.user_metadata?.docket_id as string) || 'LS-2026-0042',
+            createdAt: data.user.created_at,
+          };
+
+          // Also set local session cookie for unified middleware compatibility
+          const token = await signJwt({
+            sub: authUser.id,
+            email: authUser.email,
+            name: authUser.name,
+            role: authUser.role,
+            docketId: authUser.docketId,
+          });
+
+          const cookieStore = await cookies();
+          cookieStore.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions(rememberMe));
+
+          return NextResponse.json({
+            success: true,
+            user: authUser,
+            provider: 'supabase',
+            message: 'Citizen authenticated successfully via Supabase.',
+          });
+        }
+      } catch (sbErr) {
+        console.warn('[Auth API] Supabase login attempted but failed; trying local user store fallback:', sbErr);
+      }
+    }
+
+    // 2. Fallback to local user store (preserves seed users and offline demo mode)
     const user = await validateCredentials(email, password);
 
     if (!user) {
@@ -47,6 +99,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       user,
+      provider: 'local_store',
       message: 'Citizen authenticated successfully.',
     });
   } catch (error) {

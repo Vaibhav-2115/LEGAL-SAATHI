@@ -5,7 +5,7 @@ Supports micro-transactions, subscriptions, collective action dockets, and GST i
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 
@@ -62,7 +62,7 @@ class SubscriptionStatusResponse(BaseModel):
     tier: Literal["civic", "pro", "advocate", "enterprise"]
     plan_name: str
     is_active: bool
-    current_period_end: Optional[str] = None
+    current_period_end: Optional[Union[str, datetime]] = None
     allowed_drafts_remaining: Any = "unlimited"  # int or "unlimited"
     can_export_pdf_dossier: bool = False
     can_access_collective_dockets: bool = False
@@ -79,7 +79,7 @@ class InvoiceItemResponse(BaseModel):
     sgst_inr: float
     igst_inr: float
     total_amount_inr: float
-    created_at: str
+    created_at: Union[str, datetime]
     invoice_pdf_url: Optional[str] = None
 
 

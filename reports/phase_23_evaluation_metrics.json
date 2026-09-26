@@ -1,0 +1,200 @@
+{
+  "metrics": {
+    "total_samples": 10,
+    "statutory_detection_accuracy": 100.0,
+    "core_dispute_accuracy": 100.0,
+    "hallucination_rate": 0.0,
+    "avg_latency_seconds": 23.9,
+    "avg_tokens_generated": 74.7,
+    "bilingual_pass_rate": 100.0,
+    "pass_threshold_met": true
+  },
+  "cases": [
+    {
+      "id": "BENCH-001",
+      "domain": "Cheque Dishonour",
+      "language": "English",
+      "statute_match": true,
+      "expected_statutes": [
+        "Negotiable Instruments Act",
+        "Section 138"
+      ],
+      "detected_laws": [
+        "Negotiable Instruments Act",
+        "Section 138"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 29.72,
+      "tokens_generated": 96,
+      "findings_excerpt": "The complaint has been allowed by the High Court at first instance. It is not disputed that the amount in dispute was paid after the statutory period ..."
+    },
+    {
+      "id": "BENCH-002",
+      "domain": "Criminal Law (Stolen Property)",
+      "language": "English",
+      "statute_match": true,
+      "expected_statutes": [
+        "Section 411",
+        "IPC"
+      ],
+      "detected_laws": [
+        "IPC",
+        "Section 411"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 19.35,
+      "tokens_generated": 61,
+      "findings_excerpt": "Case: State of Maharashtra Vs Ramesh Kumar | Court: High Court of Gujarat | Disposition: DISMISSED NO COSTS\n\n### Conclusion:\nCase: State of Maharashtr..."
+    },
+    {
+      "id": "BENCH-003",
+      "domain": "Consumer Protection",
+      "language": "English",
+      "statute_match": true,
+      "expected_statutes": [
+        "Consumer Protection Act",
+        "Section 2(11)"
+      ],
+      "detected_laws": [
+        "Consumer Protection Act",
+        "Section 2(11)"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 24.68,
+      "tokens_generated": 79,
+      "findings_excerpt": "Case: SCA/1238/2006 of Sharma Vs ABC Electronics Pvt Ltd | Court: High Court of Uttarakhand | Disposition: DISMISSED NO COSTS\n\n### Conclusion:\nCase: S..."
+    },
+    {
+      "id": "BENCH-004",
+      "domain": "Real Estate / RERA",
+      "language": "English",
+      "statute_match": true,
+      "expected_statutes": [
+        "RERA",
+        "Section 18"
+      ],
+      "detected_laws": [
+        "RERA",
+        "Section 18"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 29.28,
+      "tokens_generated": 93,
+      "findings_excerpt": "The Supreme Court held that the builder's claim was invalid as it had failed to obtain the required documents from the allottees within six months of ..."
+    },
+    {
+      "id": "BENCH-005",
+      "domain": "Tenancy & Eviction",
+      "language": "English",
+      "statute_match": true,
+      "expected_statutes": [
+        "Model Tenancy Act",
+        "Security Deposit"
+      ],
+      "detected_laws": [
+        "Model Tenancy Act"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 23.65,
+      "tokens_generated": 76,
+      "findings_excerpt": "The court found that the landlord had breached its obligations under the tenancy agreement by deducting a substantial portion of the security deposit ..."
+    },
+    {
+      "id": "BENCH-006",
+      "domain": "Cyber Crime",
+      "language": "English",
+      "statute_match": true,
+      "expected_statutes": [
+        "Information Technology Act",
+        "Section 66D"
+      ],
+      "detected_laws": [
+        "BNS",
+        "Information Technology Act",
+        "Section 318",
+        "Section 66D"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 20.76,
+      "tokens_generated": 63,
+      "findings_excerpt": "Case: Cyber Police Vs Unknown Fraudsters | Court: Supreme Court of India | Disposition: Appeal(s) allowed\n\n### Disclaimer:\nThe analysis provided is ba..."
+    },
+    {
+      "id": "BENCH-007",
+      "domain": "Criminal Law (Counterfeiting)",
+      "language": "English",
+      "statute_match": true,
+      "expected_statutes": [
+        "Section 489C",
+        "IPC"
+      ],
+      "detected_laws": [
+        "IPC",
+        "Section 489C"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 23.92,
+      "tokens_generated": 77,
+      "findings_excerpt": "Case: State of Gujarat Vs Arvind Bhai | Court: High Court of Gujarat | Disposition: DISMISSED NO COSTS\n\n### Disclaimer:\nThe analysis provided here is ..."
+    },
+    {
+      "id": "BENCH-008",
+      "domain": "Legal Aid / Constitutional",
+      "language": "English",
+      "statute_match": true,
+      "expected_statutes": [
+        "Article 39A",
+        "Legal Services Authorities Act"
+      ],
+      "detected_laws": [
+        "Article 39A",
+        "Constitution of India",
+        "Legal Services Authorities Act",
+        "Section 12"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 24.74,
+      "tokens_generated": 79,
+      "findings_excerpt": "Case: WP/1238/2000 of Under-trial Prisoner Vs State | Court: High Court of Uttarakhand | Disposition: DISMISSED NO COSTS\n\n### Conclusion:\nCase: WP/123..."
+    },
+    {
+      "id": "BENCH-009",
+      "domain": "Cheque Bounce (Hindi)",
+      "language": "Hindi",
+      "statute_match": true,
+      "expected_statutes": [
+        "Negotiable Instruments Act",
+        "Section 138"
+      ],
+      "detected_laws": [
+        "Negotiable Instruments Act"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 32.35,
+      "tokens_generated": 96,
+      "findings_excerpt": "अपील द्वारा पेट्रोलमेंट एंड टेलीकॉमunicेशन कंपनी लिमिटेड के खिलाफ संघीय अदालतों में विरोध किया गया, जिसमें यह कहा गया था कि कंपनी के शेयरधारकों को अपन..."
+    },
+    {
+      "id": "BENCH-010",
+      "domain": "Consumer Protection (Hindi)",
+      "language": "Hindi",
+      "statute_match": true,
+      "expected_statutes": [
+        "Consumer Protection Act"
+      ],
+      "detected_laws": [
+        "Consumer Protection Act"
+      ],
+      "dispute_match": true,
+      "latency_seconds": 10.49,
+      "tokens_generated": 27,
+      "findings_excerpt": "अंतिम निर्णय: 0/1\nसंपूर्ण निर्णय: 0/1"
+    }
+  ],
+  "timestamp": "2026-09-27 03:46:04",
+  "hardware": {
+    "device": "cpu",
+    "base_model": "unsloth/Llama-3.2-1B-Instruct-bnb-4bit",
+    "adapter": "indian_legal_llama_lora"
+  }
+}

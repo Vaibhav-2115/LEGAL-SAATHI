@@ -18,9 +18,46 @@ from backend.core.logging import logger
 from backend.schemas.retrieval import ChunkItem, SearchResponse, SourceDetail
 
 
+# Bilingual legal synonym expansion dictionary for cross-lingual English-Hindi statutory retrieval
+BILINGUAL_LEGAL_MAP: Dict[str, str] = {
+    "उपभोक्ता": "consumer protection deficiency refund warranty replacement unfair trade",
+    "ग्राहक": "consumer customer deficiency service refund",
+    "किराया": "rent tenancy landlord eviction lease security deposit",
+    "किरायेदार": "tenant tenancy rent lease premises eviction",
+    "मकान": "property landlord house rent tenant flat premises",
+    "मकानमालिक": "landlord eviction rent deposit tenancy",
+    "धोखाधड़ी": "cheating fraud theft criminal section 415 420 bns",
+    "चोरी": "stolen theft property possession section 378 411 ipc bns",
+    "चेक": "cheque dishonour section 138 negotiable instruments payment bank",
+    "बाउंस": "dishonour cheque bounce section 138 notice",
+    "बिल्डर": "builder possession rera delay flat apartment allottee compensation",
+    "फ्लैट": "flat apartment builder rera possession delay",
+    "हिंसा": "domestic violence physical assault protection order woman",
+    "दहेज": "dowry harassment domestic violence cruelty section 498a",
+    "वेतन": "salary wages unpaid payment gratuity termination employment labor",
+    "नौकरी": "employment termination wages unpaid notice dismissal",
+    "आरटीआई": "rti right to information pio authority public cpio appeal",
+    "सूचना": "information rti public authority right disclosure",
+    "साइबर": "cyber fraud otp upi unauthorized bank transaction 1930 hacking",
+    "पुलिस": "police fir complaint station investigation report",
+}
+
+
 def tokenize_text(text: str) -> List[str]:
-    """Simple lowercase regex-based tokenizer."""
-    return [w for w in re.findall(r"\w+", text.lower()) if len(w) > 1]
+    """Lowercase tokenizer supporting alphanumeric, Devanagari Unicode, and punctuation removal."""
+    cleaned = re.sub(r"[^\w\s\u0900-\u097F]", " ", text.lower())
+    return [w for w in cleaned.split() if len(w) > 1]
+
+
+def expand_query_terms(tokens: List[str]) -> List[str]:
+    """Expands query tokens using the bilingual Hindi-to-English legal map for enhanced statutory recall."""
+    expanded = list(tokens)
+    for token in tokens:
+        if token in BILINGUAL_LEGAL_MAP:
+            for syn in BILINGUAL_LEGAL_MAP[token].split():
+                if syn not in expanded:
+                    expanded.append(syn)
+    return expanded
 
 
 class HybridRetrievalService:
@@ -91,12 +128,14 @@ class HybridRetrievalService:
         if not q_tokens:
             return []
 
+        expanded_tokens = expand_query_terms(q_tokens)
+
         # 1. BM25 Lexical Ranking
-        bm25_scores = self.bm25_index.get_scores(q_tokens)
+        bm25_scores = self.bm25_index.get_scores(expanded_tokens)
         bm25_ranked_indices = sorted(range(len(bm25_scores)), key=lambda i: bm25_scores[i], reverse=True)
 
         # 2. Semantic Ranking
-        semantic_scores = [self._compute_semantic_score(q_tokens, idx) for idx in range(len(self.documents))]
+        semantic_scores = [self._compute_semantic_score(expanded_tokens, idx) for idx in range(len(self.documents))]
         semantic_ranked_indices = sorted(range(len(semantic_scores)), key=lambda i: semantic_scores[i], reverse=True)
 
         # 3. Reciprocal Rank Fusion (RRF)
@@ -118,9 +157,11 @@ class HybridRetrievalService:
             doc = self.documents[idx]
             
             # Corpus filter
-            if corpus == "acts" and doc.get("type") != "Act":
+            if corpus == "acts" and doc.get("type") not in ("Act", "Transition Mapping", "Scheme / Regulation", "Repealed Statute"):
                 continue
             elif corpus == "judgments" and doc.get("type") != "Judgment":
+                continue
+            elif corpus == "incidents" and doc.get("type") != "IncidentCluster":
                 continue
             
             # Issue type filter (soft boost or filter)

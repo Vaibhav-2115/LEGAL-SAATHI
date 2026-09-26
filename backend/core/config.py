@@ -3,7 +3,7 @@ Legal Saathi - Core Configuration
 Loads environment variables, service settings, and LLM configuration.
 """
 
-from typing import List
+from typing import List, Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -52,8 +52,12 @@ class Settings(BaseSettings):
     MAX_TEXT_LENGTH: int = 5000
     RATE_LIMIT_REQUESTS_PER_MINUTE: int = 60
 
-    # Persistence
+    # Persistence & Supabase Configuration
     DATABASE_PATH: str = "legal_saathi.db"
+    DATABASE_URL: Optional[str] = None
+    SUPABASE_URL: Optional[str] = None
+    SUPABASE_ANON_KEY: Optional[str] = None
+    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
 
     # Payment Gateway Configuration (Razorpay / Cashfree)
     RAZORPAY_KEY_ID: str = "rzp_test_mock_legal_saathi"

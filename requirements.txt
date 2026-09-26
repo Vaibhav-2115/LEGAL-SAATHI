@@ -1,0 +1,21 @@
+# Legal Saathi - Core & ML Inference Dependencies
+# PyTorch with GPU/CPU Fallback
+torch>=2.2.0
+
+# Hugging Face & Fine-Tuned LoRA Inference Engine
+transformers>=4.45.0
+peft>=0.13.0
+accelerate>=0.34.0
+bitsandbytes>=0.43.0
+safetensors>=0.4.3
+
+# REST API & Web Backend
+fastapi>=0.110.0
+uvicorn>=0.30.0
+pydantic>=2.7.0
+python-dotenv>=1.0.0
+
+# Optional UI & Cloud LLM Providers
+google-genai>=2.0.0
+streamlit>=1.35.0
+pypdf>=5.0.0

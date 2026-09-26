@@ -11,6 +11,7 @@ from .actions import actions_router
 from .voice import router as voice_router
 from .analytics import router as analytics_router
 from .billing import router as billing_router
+from .lora import router as lora_router
 
 __all__ = [
     "health_router",
@@ -24,5 +25,6 @@ __all__ = [
     "actions_router",
     "voice_router",
     "analytics_router",
-    "billing_router"
+    "billing_router",
+    "lora_router"
 ]

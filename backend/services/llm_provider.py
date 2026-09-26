@@ -48,11 +48,12 @@ class LLMProvider:
         self,
         query: str,
         context_chunks: List[ChunkItem],
-        lang: str = "en"
+        lang: str = "en",
+        provider: Optional[str] = None
     ) -> Tuple[str, str]:
         """
-        Attempts generation using primary LLM (Gemini), and gracefully
-        falls back to the local grounded synthesis engine if unavailable or timed out.
+        Attempts generation using requested provider or primary LLM (Gemini / LoRA),
+        and gracefully falls back to the local grounded synthesis engine if unavailable or timed out.
         Returns: (generated_answer, provider_used)
         """
         # Format the legal context pack
@@ -61,8 +62,27 @@ class LLMProvider:
             for i, c in enumerate(context_chunks)
         ])
 
-        # 1. Try Primary (Gemini) if client is active and key is present
-        if self.client and self.api_key:
+        # 1. Check if LoRA model provider is explicitly requested or set as primary
+        if provider == "lora" or getattr(settings, "PRIMARY_LLM_PROVIDER", "") == "lora":
+            try:
+                from model_runner import IndianLegalModelRunner
+                runner = IndianLegalModelRunner.get_instance()
+                if runner.is_ready:
+                    augmented_case = f"{query}\n\nApplicable Context:\n{context_text}"
+                    loop = asyncio.get_event_loop()
+                    res = await loop.run_in_executor(
+                        None, lambda: runner.analyze_case(augmented_case, max_new_tokens=128)
+                    )
+                    if res and res.get("findings"):
+                        return (
+                            f"{res['findings']}\n\n**Statutory References:** {', '.join(res.get('relevant_laws', []))}",
+                            "lora_llama"
+                        )
+            except Exception as e:
+                logger.warning(f"LoRA inference error in LLM provider: {e}. Falling back...")
+
+        # 2. Try Primary (Gemini) if client is active and key is present
+        if self.client and self.api_key and provider != "local":
             try:
                 answer = await asyncio.wait_for(
                     self._call_gemini(query, context_text, lang),
@@ -75,7 +95,7 @@ class LLMProvider:
             except Exception as e:
                 logger.warning(f"Primary LLM error: {e}. Triggering fallback provider.")
 
-        # 2. Fallback to Local Grounded Synthesis Engine
+        # 3. Fallback to Local Grounded Synthesis Engine
         fallback_answer = self._local_grounded_synthesis(query, context_chunks, lang)
         return fallback_answer, "fallback_local_grounded"
 

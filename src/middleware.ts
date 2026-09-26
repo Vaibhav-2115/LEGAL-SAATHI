@@ -4,6 +4,8 @@ import { verifyJwt } from '@/lib/auth/jwt';
 import { SESSION_COOKIE_NAME } from '@/lib/auth/cookies';
 import { getSafeCallbackUrl } from '@/lib/auth/redirect';
 
+import { updateSession } from '@/lib/supabase/middleware';
+
 // Protected routes that require an authenticated citizen session
 const PROTECTED_PREFIXES = [
   '/dashboard',
@@ -17,15 +19,18 @@ const PROTECTED_PREFIXES = [
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  // Read session cookie
+  // 1. Refresh Supabase session if configured
+  const { supabaseResponse, user: sbUser } = await updateSession(request);
+
+  // 2. Read local session cookie fallback
   const sessionCookie =
     request.cookies.get(SESSION_COOKIE_NAME) ||
     request.cookies.get('__Secure-legal-saathi.session-token') ||
     request.cookies.get('legal-saathi.session-token');
 
   const token = sessionCookie?.value;
-  const user = token ? await verifyJwt(token) : null;
-  const isAuthenticated = !!user;
+  const localUser = token ? await verifyJwt(token) : null;
+  const isAuthenticated = Boolean(sbUser || localUser);
 
   const isProtectedRoute = PROTECTED_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
@@ -33,7 +38,7 @@ export async function middleware(request: NextRequest) {
 
   const isAuthRoute = pathname === '/login' || pathname === '/register';
 
-  // 1. Unauthenticated citizen attempting to access protected route
+  // 3. Unauthenticated citizen attempting to access protected route
   if (isProtectedRoute && !isAuthenticated) {
     const loginUrl = new URL('/login', request.url);
     const destination = `${pathname}${search}`;
@@ -41,14 +46,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 2. Already-authenticated citizen attempting to access /login or /register
+  // 4. Already-authenticated citizen attempting to access /login or /register
   if (isAuthRoute && isAuthenticated) {
     const rawCallback = request.nextUrl.searchParams.get('callbackUrl');
-    const safeDestination = getSafeCallbackUrl(rawCallback, '/complaints');
+    const safeDestination = getSafeCallbackUrl(rawCallback, '/dashboard');
     return NextResponse.redirect(new URL(safeDestination, request.url));
   }
 
-  return NextResponse.next();
+  return supabaseResponse;
 }
 
 export const config = {

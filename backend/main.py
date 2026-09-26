@@ -5,6 +5,7 @@ Wires all routers, safety middleware, CORS, and centralized error handling.
 Per Section 10 & 11 of the Technical Blueprint.
 """
 
+import uuid
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,7 +25,8 @@ from backend.routers import (
     actions_router,
     voice_router,
     analytics_router,
-    billing_router
+    billing_router,
+    lora_router
 )
 
 
@@ -44,7 +46,18 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# 1. Security Headers Middleware
+
+# 1. Request ID / Correlation ID Middleware
+@app.middleware("http")
+async def add_correlation_id(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID") or f"req-{uuid.uuid4().hex[:12]}"
+    request.state.request_id = request_id
+    response = await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
+
+
+# 2. Security Headers Middleware
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
@@ -96,7 +109,8 @@ routers = [
     actions_router,
     voice_router,
     analytics_router,
-    billing_router
+    billing_router,
+    lora_router
 ]
 
 for r in routers:

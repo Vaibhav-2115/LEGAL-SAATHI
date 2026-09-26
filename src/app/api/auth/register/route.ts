@@ -6,6 +6,8 @@ import {
   SESSION_COOKIE_NAME,
   getSessionCookieOptions,
 } from '@/lib/auth/cookies';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
@@ -46,6 +48,71 @@ export async function POST(request: Request) {
       );
     }
 
+    // 1. Attempt Supabase Auth registration if configured
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = await createServerSupabaseClient();
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim().toLowerCase(),
+          password,
+          options: {
+            data: {
+              full_name: name.trim(),
+              role: 'CITIZEN',
+              consent_dpdp: true,
+              docket_id: 'LS-2026-0042',
+            },
+          },
+        });
+
+        if (error) {
+          if (error.message.toLowerCase().includes('already registered')) {
+            return NextResponse.json(
+              { success: false, error: 'An account is already registered with this email address.' },
+              { status: 409 }
+            );
+          }
+          throw error;
+        }
+
+        if (data?.user) {
+          const authUser = {
+            id: data.user.id,
+            email: data.user.email || email,
+            name: name.trim(),
+            role: 'CITIZEN' as const,
+            docketId: 'LS-2026-0042',
+            createdAt: data.user.created_at,
+          };
+
+          // Issue session token if session exists (email confirmation disabled or auto-confirmed)
+          const token = await signJwt({
+            sub: authUser.id,
+            email: authUser.email,
+            name: authUser.name,
+            role: authUser.role,
+            docketId: authUser.docketId,
+          });
+
+          const cookieStore = await cookies();
+          cookieStore.set(SESSION_COOKIE_NAME, token, getSessionCookieOptions(true));
+
+          return NextResponse.json({
+            success: true,
+            user: authUser,
+            provider: 'supabase',
+            requiresEmailVerification: !data.session,
+            message: data.session
+              ? 'Citizen profile created and authenticated successfully via Supabase.'
+              : 'Citizen profile created. Please check your email to verify your account.',
+          });
+        }
+      } catch (sbErr) {
+        console.warn('[Auth API] Supabase registration error, falling back to local user store:', sbErr);
+      }
+    }
+
+    // 2. Fallback to local user store
     const user = await createUser({
       name,
       email,
@@ -69,6 +136,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       user,
+      provider: 'local_store',
       message: 'Citizen profile created and authenticated successfully.',
     });
   } catch (error: unknown) {
