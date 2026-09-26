@@ -41,9 +41,8 @@ export default function MyMattersPage() {
     return true;
   });
 
-  const getStatusBadge = (status: string, id: string) => {
-    // Specific match to reference image
-    if (id === 'LS-2026-0042') {
+  const getStatusBadge = (status: string) => {
+    if (status === 'ACTION REQUIRED' || status === 'VERIFICATION') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-bold tracking-wider uppercase">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -51,7 +50,7 @@ export default function MyMattersPage() {
         </span>
       );
     }
-    if (id === 'LS-2026-0038' || status === 'UNDERSTANDING' || status === 'VERIFICATION') {
+    if (status === 'UNDERSTANDING') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-bold tracking-wider uppercase">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
@@ -59,7 +58,7 @@ export default function MyMattersPage() {
         </span>
       );
     }
-    if (id === 'LS-2026-0029' || status === 'COMPLETED' || status === 'READY FOR ACTION') {
+    if (status === 'COMPLETED' || status === 'READY FOR ACTION') {
       return (
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold tracking-wider uppercase">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -70,19 +69,16 @@ export default function MyMattersPage() {
     return (
       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] font-bold tracking-wider uppercase">
         <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-        DRAFT
+        {status}
       </span>
     );
   };
 
-  const getEvidenceFraction = (id: string, totalCount?: number, collectedCount?: number) => {
-    if (id === 'LS-2026-0042') return { current: 2, total: 5, pct: 40 };
-    if (id === 'LS-2026-0038') return { current: 5, total: 6, pct: 83 };
-    if (id === 'LS-2026-0029') return { current: 4, total: 4, pct: 100 };
-    if (id === 'LS-2026-0015' || id === 'LS-2026-0012') return { current: 1, total: 3, pct: 33 };
-    const cur = collectedCount || 1;
-    const tot = totalCount || 3;
-    return { current: cur, total: tot, pct: Math.round((cur / tot) * 100) };
+  const getEvidenceFraction = (_id: string, totalCount?: number, collectedCount?: number) => {
+    const total = totalCount ?? 3;
+    const current = collectedCount ?? 0;
+    const pct = total > 0 ? Math.min(100, Math.round((current / total) * 100)) : 0;
+    return { current, total, pct };
   };
 
   return (
@@ -241,7 +237,7 @@ export default function MyMattersPage() {
                     </span>
                   </div>
 
-                  <div>{getStatusBadge(matter.status, matter.id)}</div>
+                  <div>{getStatusBadge(matter.status)}</div>
                 </div>
 
                 {/* Middle: Title & Description */}

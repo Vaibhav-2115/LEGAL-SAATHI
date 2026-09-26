@@ -1,17 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLegalSaathi } from '../../context/LegalSaathiContext';
 import { SimilarCaseCard } from '../../components/SimilarCaseCard';
-import { SIMILAR_CASE_CLUSTERS } from '../../lib/mock-data';
+import { SimilarCaseCluster } from '../../lib/types';
+import { legalSaathiApi } from '../../lib/api';
 
 export default function SimilarCasesPage() {
   const { activeCaseId } = useLegalSaathi();
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [clusters, setClusters] = useState<SimilarCaseCluster[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const clusters = SIMILAR_CASE_CLUSTERS;
+  useEffect(() => {
+    let isMounted = true;
+    legalSaathiApi.getClusters()
+      .then((res) => {
+        if (isMounted) {
+          setClusters(res);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load clusters from backend:', err);
+        if (isMounted) setLoading(false);
+      });
+    return () => { isMounted = false; };
+  }, []);
 
   const filteredClusters = clusters.filter((item) => {
     const matchesCategory = selectedCategory === 'ALL' || item.category === selectedCategory;

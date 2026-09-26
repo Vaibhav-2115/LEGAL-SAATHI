@@ -22,6 +22,7 @@ import {
   MISSING_INFO_QUESTIONS,
   DEFAULT_USER_CONSENTS
 } from '../lib/mock-data';
+import { legalSaathiApi, transformBackendChatResponse } from '../lib/api';
 
 interface LegalSaathiContextType {
   cases: LegalCase[];
@@ -196,16 +197,27 @@ export function LegalSaathiProvider({ children }: { children: React.ReactNode })
     }));
   };
 
+  // Fetch real persisted cases from Supabase PostgreSQL on mount
+  useEffect(() => {
+    let isMounted = true;
+    legalSaathiApi.getCases().then((persistedCases) => {
+      if (isMounted && persistedCases && persistedCases.length > 0) {
+        setCases(persistedCases);
+        setActiveCaseId(persistedCases[0].id);
+      }
+    }).catch(() => {});
+    return () => { isMounted = false; };
+  }, []);
+
   const activeCase = cases.find((c) => c.id === activeCaseId) || cases[0];
 
   const createCaseFromProblem = (problem: string, customDetails?: Partial<LegalCase>): string => {
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const newCaseId = `LS-2026-${randomSuffix}`;
+    const tempId = `LS-${Date.now().toString().slice(-6)}`;
     const newCase: LegalCase = {
-      id: newCaseId,
+      id: tempId,
       title: customDetails?.title || (problem.slice(0, 42) + (problem.length > 42 ? '...' : '')),
       category: customDetails?.category || 'Civil & Statutory Rights',
-      jurisdiction: customDetails?.jurisdiction || 'Jurisdiction Pending Clarification',
+      jurisdiction: customDetails?.jurisdiction || 'General Indian Civil Jurisdiction',
       claimAmount: customDetails?.claimAmount,
       status: customDetails?.status || 'UNDERSTANDING',
       currentStage: customDetails?.currentStage || 'UNDERSTAND',
@@ -233,16 +245,7 @@ export function LegalSaathiProvider({ children }: { children: React.ReactNode })
           statusLabel: 'Review Needed'
         }
       ],
-      legalSources: [
-        {
-          id: `ls-${Date.now()}`,
-          title: 'Constitution of India & Civil Statutory Protections',
-          section: 'Article 39A (Free Legal Aid & Equal Justice)',
-          relevance: 'Statutory mandate ensuring citizen access to lawful dispute redressal',
-          excerpt: 'The State shall secure that the operation of the legal system promotes justice on a basis of equal opportunity.',
-          verified: true
-        }
-      ],
+      legalSources: [],
       timeline: [
         {
           id: `t-${Date.now()}`,
@@ -264,12 +267,21 @@ export function LegalSaathiProvider({ children }: { children: React.ReactNode })
       }
     };
 
-    setCases((prev) => [newCase, ...prev]);
-    setActiveCaseId(newCaseId);
-    return newCaseId;
+    setCases((prev) => [newCase, ...prev.filter((c) => c.id !== tempId)]);
+    setActiveCaseId(tempId);
+
+    // Asynchronously persist to Supabase PostgreSQL via backend API
+    legalSaathiApi.createCase(problem, customDetails).then((persistedCase) => {
+      setCases((prev) => [persistedCase, ...prev.filter((c) => c.id !== tempId && c.id !== persistedCase.id)]);
+      setActiveCaseId(persistedCase.id);
+    }).catch((err) => {
+      console.warn('Backend case creation offline/failed, using local draft:', err);
+    });
+
+    return tempId;
   };
 
-  const addChatMessage = (text: string) => {
+  const addChatMessage = async (text: string) => {
     const userMsg: ChatMessage = {
       id: `usr-${Date.now()}`,
       sender: 'user',
@@ -280,41 +292,58 @@ export function LegalSaathiProvider({ children }: { children: React.ReactNode })
     setChatMessages((prev) => [...prev, userMsg]);
     setIsAnalyzing(true);
 
-    // Generate responsive structured assistant reply adhering to Stitch guidelines
-    setTimeout(() => {
+    try {
+      // Call real backend RAG pipeline (POST /chat)
+      const res = await legalSaathiApi.sendChat(text, activeCaseId);
+      const structuredReply = transformBackendChatResponse(res, text);
+
       const assistantMsg: ChatMessage = {
         id: `asst-${Date.now()}`,
         sender: 'assistant',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        structured: {
-          whatIUnderstand: `Based on the details provided in your statement: "${text.slice(0, 160)}${text.length > 160 ? '...' : ''}", this matter involves civil rights, statutory contractual obligations, and procedural remedies under applicable Indian law.`,
-          informationINeed: [
-            'Do you possess any written communication, agreement, or formal receipts related to this matter?',
-            'On what date did this dispute or non-compliance initially occur?',
-            'Has any written notice, police report, or statutory complaint been submitted to the counterparty?'
-          ],
-          evidenceStrength: {
-            score: 55,
-            level: 'MODERATE',
-            summary: 'Initial Statement Registered. Corroborating documentation will elevate statutory enforcement strength.'
-          },
-          whyThisMayApply: 'Under Indian civil jurisprudence and statutory consumer/tenancy enactments, arbitrary non-performance or refusal to honor agreed contractual terms is subject to formal notice and summary dispute resolution before competent authorities.',
-          legalSource: {
-            act: 'Specific Relief Act, 1963 & Indian Contract Act, 1872',
-            section: 'Section 10 & Section 73',
-            summary: 'Parties to a binding civil covenant are entitled to specific performance or compensatory relief upon breach.'
-          },
-          whatYouCanDoNext: {
-            suggestion: 'We have updated your case context. You can examine relevant facts, review the evidence requirements, or generate an initial formal draft in your Case Workspace.',
-            actionLabel: `View Case Workspace #${activeCaseId}`,
-            caseId: activeCaseId
-          }
-        }
+        text: res.answer,
+        structured: structuredReply
       };
 
       setChatMessages((prev) => [...prev, assistantMsg]);
+
+      // If backend created/returned a case ID, link it
+      if (res.case_id && res.case_id !== activeCaseId) {
+        setActiveCaseId(res.case_id);
+      }
+    } catch (err: any) {
+      const errorMsg: ChatMessage = {
+        id: `asst-err-${Date.now()}`,
+        sender: 'assistant',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        text: 'I could not retrieve legal sources at this moment. The backend service may be temporarily unavailable or processing another request.',
+        structured: {
+          whatIUnderstand: `Statement: "${text.slice(0, 120)}${text.length > 120 ? '...' : ''}"`,
+          informationINeed: [
+            'Please verify backend connection to http://localhost:8000',
+            'Try submitting your legal query again'
+          ],
+          evidenceStrength: {
+            score: 0,
+            level: 'LOW',
+            summary: 'Service temporarily unable to ground claims in statutory database.'
+          },
+          whyThisMayApply: 'Legal Saathi refuses to fabricate legal provisions when the retrieval engine is unreachable.',
+          legalSource: {
+            act: 'Retrieval Service Unavailable',
+            section: 'Offline',
+            summary: 'Ensure FastAPI backend is running and connected to Supabase.'
+          },
+          whatYouCanDoNext: {
+            suggestion: 'Retry the query once backend connectivity is restored.',
+            actionLabel: 'Retry Query'
+          }
+        }
+      };
+      setChatMessages((prev) => [...prev, errorMsg]);
+    } finally {
       setIsAnalyzing(false);
-    }, 700);
+    }
   };
 
   const updateFactVerificationStatus = (

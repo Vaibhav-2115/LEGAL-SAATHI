@@ -1,25 +1,40 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { VERIFIED_LEGAL_SOURCES } from '../lib/mock-data';
+import { StatutorySource } from '../lib/types';
+import { legalSaathiApi } from '../lib/api';
 
 interface SourceComparisonViewProps {
   caseId?: string;
   initialSourceIds?: string[];
   caseTitle?: string;
+  sources?: StatutorySource[];
 }
 
 export const SourceComparisonView: React.FC<SourceComparisonViewProps> = ({
-  initialSourceIds = ['ls1', 'ls2', 'ls3'],
-  caseTitle = 'Active Dispute'
+  initialSourceIds = [],
+  caseTitle = 'Active Dispute',
+  sources: propSources
 }) => {
-  // Currently selected source IDs for side-by-side comparison
+  const [sources, setSources] = useState<StatutorySource[]>(propSources || []);
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSourceIds);
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
 
-  const allSources = VERIFIED_LEGAL_SOURCES;
+  useEffect(() => {
+    if (!propSources || propSources.length === 0) {
+      legalSaathiApi.getSources(undefined, undefined, 20, 0).then((res) => {
+        if (res.sources && res.sources.length > 0) {
+          setSources(res.sources);
+          if (selectedIds.length === 0) {
+            setSelectedIds(res.sources.slice(0, 3).map((s) => s.id));
+          }
+        }
+      }).catch(() => {});
+    }
+  }, [propSources]);
 
+  const allSources = propSources && propSources.length > 0 ? propSources : sources;
   const selectedSources = allSources.filter((s) => selectedIds.includes(s.id));
 
   const toggleSourceSelection = (id: string) => {

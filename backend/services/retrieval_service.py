@@ -199,12 +199,77 @@ class HybridRetrievalService:
 
         return results
 
+    def list_sources(
+        self,
+        query: Optional[str] = None,
+        category: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0
+    ) -> Dict[str, Any]:
+        """
+        Lists and filters verified legal sources from the 9,549 canonical documents.
+        """
+        type_to_category = {
+            "Act": "ACTS",
+            "Judgment": "JUDGMENTS",
+            "Scheme / Regulation": "RULES",
+            "Transition Mapping": "SECTIONS",
+            "Repealed Statute": "OTHER_VERIFIED_SOURCES",
+            "IncidentCluster": "OTHER_VERIFIED_SOURCES"
+        }
+
+        matched = []
+        q_lower = query.lower().strip() if query else ""
+
+        seen_sources = set()
+        for doc in self.documents:
+            sid = doc.get("source_id") or doc.get("chunk_id")
+            if sid in seen_sources:
+                continue
+
+            doc_type = doc.get("type", "Act")
+            cat = type_to_category.get(doc_type, "ACTS")
+
+            if category and category != "ALL" and cat != category:
+                continue
+
+            title = doc.get("title", "")
+            section_ref = doc.get("section_ref", "")
+            text = doc.get("text", "")
+
+            if q_lower:
+                if q_lower not in title.lower() and q_lower not in section_ref.lower() and q_lower not in text.lower():
+                    continue
+
+            seen_sources.add(sid)
+            matched.append({
+                "id": sid,
+                "title": title,
+                "section": section_ref,
+                "category": cat,
+                "relevance": f"Statutory authority under {title} ({section_ref})",
+                "excerpt": text[:260] + ("..." if len(text) > 260 else ""),
+                "verified": True,
+                "officialLink": doc.get("official_link"),
+                "readMoreUrl": doc.get("official_link"),
+                "jurisdiction": doc.get("jurisdiction", "India (Central)"),
+                "date": doc.get("date")
+            })
+
+        total = len(matched)
+        paginated = matched[offset : offset + limit]
+
+        return {
+            "total": total,
+            "sources": paginated
+        }
+
     def get_source_detail(self, source_id: str) -> Optional[SourceDetail]:
         """Fetches complete source metadata for citation drilldown."""
         for doc in self.documents:
-            if doc.get("source_id") == source_id:
+            if doc.get("source_id") == source_id or doc.get("chunk_id") == source_id:
                 return SourceDetail(
-                    source_id=doc.get("source_id"),
+                    source_id=doc.get("source_id") or doc.get("chunk_id"),
                     title=doc.get("title"),
                     section_ref=doc.get("section_ref"),
                     jurisdiction=doc.get("jurisdiction", "India (Central)"),

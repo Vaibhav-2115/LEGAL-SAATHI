@@ -13,14 +13,7 @@ export const VoiceAssistantPanel: React.FC = () => {
   const [language, setLanguage] = useState('Hindi');
   const [transcript, setTranscript] = useState('');
   const [timerSeconds, setTimerSeconds] = useState(0);
-
-  // Simulated voice transcripts for demonstration across civic scenarios
-  const mockTranscripts: Record<string, string> = {
-    Hindi: 'मैंने 10 जनवरी को अपना फ्लैट खाली कर दिया था और चाबियां मकान मालिक को दे दी थीं। लेकिन मकान मालिक अभी तक मेरा 65 हजार रुपये का सिक्योरिटी डिपॉजिट वापस नहीं कर रहा है। बार-बार मैसेज करने पर भी कोई जवाब नहीं मिल रहा है।',
-    English: 'I vacated my rented flat on 10th January 2026 after giving 30 days notice and handed over keys. My landlord has been withholding my security deposit of ₹65,000 without giving any inspection report or repair deductions. Please guide me on legal steps.',
-    Tamil: 'நான் கடந்த ஜனவரி 10 ஆம் தேதி வாடகை வீட்டை காலி செய்து சாவியை வீட்டு உரிமையாளரிடம் ஒப்படைத்தேன். ஆனால் உரிமையாளர் எனது ₹65,000 முன்பணத்தை திருப்பித் தர மறுக்கிறார்.',
-    Marathi: 'मी 10 जानेवारी रोजी फ्लॅट रिकामा केला होता. परंतु घरमालक माझी 65,000 रुपयांची सुरक्षा ठेव परत करत नाहीये. मला कायदेशीर नोटीस कशी पाठवायची आहे?'
-  };
+  const recognitionRef = React.useRef<any>(null);
 
   // Timer simulation during listening
   useEffect(() => {
@@ -36,14 +29,52 @@ export const VoiceAssistantPanel: React.FC = () => {
 
   const startListening = () => {
     setVoiceState('LISTENING');
-    // Automatically transition to processing after 4 seconds of simulated speech
+    setTranscript('');
+
+    const SpeechRecognition = typeof window !== 'undefined'
+      ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      : null;
+
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = language === 'Hindi' ? 'hi-IN'
+          : language === 'Tamil' ? 'ta-IN'
+          : language === 'Marathi' ? 'mr-IN'
+          : 'en-IN';
+
+        recognition.onresult = (event: any) => {
+          let current = '';
+          for (let i = 0; i < event.results.length; i++) {
+            current += event.results[i][0].transcript;
+          }
+          if (current.trim()) {
+            setTranscript(current.trim());
+          }
+        };
+
+        recognition.onend = () => {
+          setVoiceState('TRANSCRIPT');
+        };
+
+        recognition.onerror = () => {
+          setVoiceState('TRANSCRIPT');
+        };
+
+        recognition.start();
+        recognitionRef.current = recognition;
+        return;
+      } catch (err) {
+        console.warn('SpeechRecognition failed to start:', err);
+      }
+    }
+
+    // Graceful fallback if SpeechRecognition is not permitted or unavailable
     setTimeout(() => {
-      setVoiceState('PROCESSING');
-      setTimeout(() => {
-        setTranscript(mockTranscripts[language] || mockTranscripts['Hindi']);
-        setVoiceState('TRANSCRIPT');
-      }, 1500);
-    }, 4000);
+      setVoiceState('TRANSCRIPT');
+    }, 2000);
   };
 
   const handleRecordAgain = () => {
@@ -52,6 +83,9 @@ export const VoiceAssistantPanel: React.FC = () => {
   };
 
   const handleCancel = () => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
     setVoiceState('IDLE');
     setTranscript('');
   };

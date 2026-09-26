@@ -483,37 +483,30 @@ export const INITIAL_CASES: LegalCase[] = [
 
 export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
   {
-    id: 'm1',
-    sender: 'user',
-    timestamp: '10:42 AM',
-    text: 'My landlord in Saket is refusing to return my security deposit of ₹65,000. I vacated the flat on 10th January after 11 months of tenancy, and gave 30 days advance notice. Now he stopped replying to my messages.'
-  },
-  {
-    id: 'm2',
+    id: 'welcome-init',
     sender: 'assistant',
-    timestamp: '10:43 AM',
+    timestamp: 'Just now',
     structured: {
-      whatIUnderstand: 'Based on your statement, you completed an 11-month tenancy in Saket, South Delhi, served a 30-day written notice, and vacated on 10 January 2026. The landlord is withholding your ₹65,000 security deposit past the statutory refund window without providing an itemized deduction statement or proof of damage.',
+      whatIUnderstand: 'Welcome to Legal Saathi. I am your evidence-grounded legal copilot under Indian law. Describe your civil, consumer, tenancy, property, banking, or statutory dispute in plain English, Hindi, or your regional language to begin.',
       informationINeed: [
-        'Do you have a copy of the signed Lease Agreement (registered or notarized)?',
-        'Do you have digital proof of the ₹65,000 deposit transfer (bank statement or NEFT receipt)?',
-        'Was there an inspection checklist or handover confirmation (WhatsApp or written note) when keys were returned?'
+        'A brief factual description of what occurred and key dates',
+        'Details of any agreements, receipts, or notices exchanged',
+        'The city, state, or forum where the dispute arose'
       ],
       evidenceStrength: {
-        score: 65,
-        level: 'MODERATE',
-        summary: 'Moderate Proof Matrix. With the Lease Deed and Bank Transfer, your claim has high initial validity. Handover proof is recommended.'
+        score: 0,
+        level: 'LOW',
+        summary: 'Awaiting your dispute statement to initiate hybrid retrieval over 9,500+ Indian statutory acts.'
       },
-      whyThisMayApply: 'Under Indian tenancy law, landlords cannot withhold security deposits indefinitely. They are statutorily required to return the full deposit within 30 days after deducting legitimate, verified damages (normal wear and tear is expressly excluded).',
+      whyThisMayApply: 'Legal Saathi retrieves authoritative provisions from canonical Indian acts, rules, and landmark judgments to ground every response with verified citations.',
       legalSource: {
-        act: 'Model Tenancy Act, 2021 & Indian Contract Act, 1872',
-        section: 'Section 11(2) & Section 73',
-        summary: 'Landlord must refund security deposit within 30 days of vacation. Unilateral or arbitrary forfeiture constitutes actionable contractual breach.'
+        act: 'Constitution of India',
+        section: 'Article 39A',
+        summary: 'Equal justice and free legal assistance for all citizens.'
       },
       whatYouCanDoNext: {
-        suggestion: 'We have compiled your case facts into a dedicated Case Workspace. You can review the evidence checklist, upload handover messages, or draft a statutory demand notice.',
-        actionLabel: 'Open Case Workspace #LS-2026-0042',
-        caseId: 'LS-2026-0042'
+        suggestion: 'Type your grievance below or use voice input to initiate a structured legal consultation.',
+        actionLabel: 'Describe Grievance Below'
       }
     }
   }

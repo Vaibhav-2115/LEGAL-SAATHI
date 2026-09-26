@@ -15,6 +15,7 @@ function ChatContent() {
   const [inputText, setInputText] = useState('');
   const [voiceState, setVoiceState] = useState<VoiceState>('IDLE');
   const [attachedFile, setAttachedFile] = useState<string | null>(null);
+  const chatRecognitionRef = React.useRef<any>(null);
 
   useEffect(() => {
     if (initialQuery && !inputText) {
@@ -33,16 +34,53 @@ function ChatContent() {
   const handleVoiceToggle = () => {
     if (voiceState === 'IDLE') {
       setVoiceState('LISTENING');
+
+      const SpeechRecognition = typeof window !== 'undefined'
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null;
+
+      if (SpeechRecognition) {
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = false;
+          recognition.interimResults = true;
+          recognition.lang = 'en-IN';
+
+          recognition.onresult = (event: any) => {
+            let current = '';
+            for (let i = 0; i < event.results.length; i++) {
+              current += event.results[i][0].transcript;
+            }
+            if (current.trim()) {
+              setInputText(current.trim());
+            }
+          };
+
+          recognition.onend = () => {
+            setVoiceState('TRANSCRIPT');
+          };
+
+          recognition.onerror = () => {
+            setVoiceState('IDLE');
+          };
+
+          recognition.start();
+          chatRecognitionRef.current = recognition;
+          return;
+        } catch (err) {
+          console.warn('SpeechRecognition error:', err);
+        }
+      }
+
       setTimeout(() => {
-        setVoiceState('PROCESSING');
-        setTimeout(() => {
-          setVoiceState('TRANSCRIPT');
-          setInputText('The landlord stated that painting charges of ₹30,000 would be deducted, but the lease states that normal wear and tear is exempt.');
-        }, 1500);
-      }, 2000);
+        setVoiceState('IDLE');
+      }, 1500);
     } else if (voiceState === 'TRANSCRIPT') {
       setVoiceState('CONFIRM');
     } else {
+      if (chatRecognitionRef.current) {
+        try { chatRecognitionRef.current.stop(); } catch {}
+      }
       setVoiceState('IDLE');
     }
   };

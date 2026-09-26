@@ -1,17 +1,43 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useLegalSaathi } from '../../../context/LegalSaathiContext';
-import { SIMILAR_CASE_CLUSTERS } from '../../../lib/mock-data';
+import { SimilarCaseCluster } from '../../../lib/types';
+import { legalSaathiApi } from '../../../lib/api';
 
 export default function SimilarCaseGroupPage() {
   const params = useParams();
   const clusterId = params?.clusterId as string;
   const { activeCaseId } = useLegalSaathi();
+  const [cluster, setCluster] = useState<SimilarCaseCluster | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const cluster = SIMILAR_CASE_CLUSTERS.find((c) => c.id === clusterId) || SIMILAR_CASE_CLUSTERS[0];
+  useEffect(() => {
+    let isMounted = true;
+    legalSaathiApi.getClusters().then((list) => {
+      if (isMounted) {
+        const found = list.find((c) => c.id === clusterId) || null;
+        setCluster(found);
+        setLoading(false);
+      }
+    }).catch(() => {
+      if (isMounted) setLoading(false);
+    });
+    return () => { isMounted = false; };
+  }, [clusterId]);
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-background text-on-surface py-16 flex items-center justify-center">
+        <div className="flex items-center gap-3 text-xs text-on-surface-variant">
+          <span className="material-symbols-outlined text-lg animate-spin text-blue-600">sync</span>
+          <span>Loading verified similarity cluster...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!cluster) {
     return (
@@ -19,7 +45,7 @@ export default function SimilarCaseGroupPage() {
         <div className="bg-surface-container-lowest dark:bg-[#0F131C] border border-outline-variant/40 rounded-2xl p-8 text-center space-y-4">
           <span className="material-symbols-outlined text-4xl text-error">error</span>
           <h1 className="font-heading text-xl font-bold">Cluster Pattern Not Found</h1>
-          <p className="text-xs text-on-surface-variant">The requested pattern group could not be located.</p>
+          <p className="text-xs text-on-surface-variant">The requested pattern group could not be located in the database.</p>
           <Link href="/similar-cases" className="inline-block px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold">
             Back to Similar Cases
           </Link>

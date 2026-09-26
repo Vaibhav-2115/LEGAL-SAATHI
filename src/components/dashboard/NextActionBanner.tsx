@@ -22,17 +22,21 @@ export const NextActionBanner: React.FC = () => {
           </div>
 
           <h3 className="font-heading text-lg sm:text-xl font-bold text-slate-900 dark:text-amber-100">
-            Docket {currentCase.id}: Upload Key Handover &amp; Move-Out Photos
+            Docket {currentCase.id}: {currentCase.nextStep?.title || 'Review Dispute Evidence'}
           </h3>
 
           <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-            Under Section 108 of the Transfer of Property Act (1882) and prevailing tenancy jurisprudence, securing contemporaneous photographic evidence of apartment condition shifts the legal burden of proof to the landlord regarding alleged deduction charges.
+            {currentCase.nextStep?.description || currentCase.summary || 'Ensure your supporting documentation is organized and reviewed under relevant Indian statutory provisions.'}
           </p>
 
           <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-amber-900 dark:text-amber-400 font-semibold">
             <span>Dispute: <strong>{currentCase.title}</strong></span>
-            <span>•</span>
-            <span>Claim Value: <strong>{currentCase.claimAmount}</strong></span>
+            {currentCase.claimAmount && (
+              <>
+                <span>•</span>
+                <span>Claim Value: <strong>{currentCase.claimAmount}</strong></span>
+              </>
+            )}
           </div>
         </div>
 

@@ -22,16 +22,16 @@ import { LegalNoticeEditor } from '@/components/LegalNoticeEditor';
 import { SimilarCaseCard } from '@/components/SimilarCaseCard';
 import { CasePackagePreview } from '@/components/CasePackagePreview';
 
-// Mock data & types
-import { LEGAL_EXPLANATION_TRACES, SIMILAR_CASE_CLUSTERS } from '@/lib/mock-data';
-import { LegalExplanationTrace, LegalNoticeDraft, EvidenceStatus } from '@/lib/types';
+// Types
+import { LegalNoticeDraft, EvidenceStatus, LegalExplanationTrace, SimilarCaseCluster } from '@/lib/types';
+import { legalSaathiApi } from '@/lib/api';
 
 function CaseWorkspaceInner() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const caseId = (params?.caseId as string) || 'LS-2026-0042';
+  const caseId = (params?.caseId as string) || '';
   const {
     cases,
     activeCaseId,
@@ -78,19 +78,16 @@ function CaseWorkspaceInner() {
       legalNoticeDrafts[cId] || {
         id: `draft-${cId}`,
         caseId: cId,
-        recipientName: 'Property Owner / Lessors',
-        recipientAddress: 'Saket, South Delhi, New Delhi 110017',
-        disputeSubject: `Statutory Demand for Full Refund of Security Deposit under Lease Agreement`,
+        recipientName: 'Opposing Party / Authorized Representative',
+        recipientAddress: currentCase?.jurisdiction || 'Jurisdiction of Grievance',
+        disputeSubject: `Formal Statutory Legal Notice: ${currentCase?.title || 'Civil Dispute Redressal Demand'}`,
         statutoryDays: 15,
-        coreFacts: [
-          'Tenant handed over peaceful physical possession of premises on 10 January 2026.',
-          'Security deposit of ₹65,000 remains unpaid beyond the 30-day statutory limit.',
-          'No itemized damage deduction list or contractor invoices were provided.',
-        ],
+        coreFacts: currentCase?.keyFacts && currentCase.keyFacts.length > 0
+          ? currentCase.keyFacts.map((f) => f.statement)
+          : [currentCase?.citizenStatement || 'Dispute statement registered with Legal Saathi.'],
         demands: [
-          'Refund the complete security deposit sum of ₹65,000 via direct bank transfer.',
-          'Provide GST invoices and contractor inspection receipts for any contested deductions within 15 days.',
-          'Pay interest at 12% per annum from the 31st day post-handover till actual payment.',
+          'Immediate cessation of non-compliance and resolution within 15 statutory business days.',
+          'Reimbursement of outstanding claim amount and formal communication to the aggrieved party.'
         ],
         status: 'DRAFT',
         preparedAt: new Date().toLocaleDateString('en-IN'),
@@ -179,7 +176,7 @@ function CaseWorkspaceInner() {
   });
 
   // Explanation Trace for Why Law Applies
-  const trace: LegalExplanationTrace = LEGAL_EXPLANATION_TRACES[currentCase.id] || {
+  const trace: LegalExplanationTrace = {
     caseId: currentCase.id,
     whatIUnderstand: currentCase.summary || currentCase.citizenStatement,
     legalIssue: {
@@ -216,7 +213,12 @@ function CaseWorkspaceInner() {
   };
 
   // Similar cases for Collective Assistance
-  const relevantClusters = SIMILAR_CASE_CLUSTERS;
+  const [relevantClusters, setRelevantClusters] = useState<SimilarCaseCluster[]>([]);
+  useEffect(() => {
+    legalSaathiApi.getClusters().then((res) => {
+      setRelevantClusters(res);
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] bg-slate-50/60 dark:bg-[#090D16] text-slate-900 dark:text-slate-100 transition-colors pb-16">

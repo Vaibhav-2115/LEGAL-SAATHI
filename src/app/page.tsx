@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLegalSaathi } from '../context/LegalSaathiContext';
 import { CaseStatusBadge } from '../components/CaseStatusBadge';
-import { EXAMPLE_QUESTIONS } from '../lib/mock-data';
 import { VoiceState } from '../lib/types';
+import { EXAMPLE_QUESTIONS } from '../lib/mock-data';
 
 export default function HomePage() {
   const router = useRouter();
@@ -24,20 +24,56 @@ export default function HomePage() {
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [attachedFileName, setAttachedFileName] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const recognitionRef = React.useRef<any>(null);
 
   const handleVoiceToggle = () => {
     if (voiceState === 'IDLE') {
       setVoiceState('LISTENING');
+
+      const SpeechRecognition = typeof window !== 'undefined'
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null;
+
+      if (SpeechRecognition) {
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.continuous = false;
+          recognition.interimResults = true;
+          recognition.lang = selectedLanguage === 'Hindi' ? 'hi-IN' : 'en-IN';
+
+          recognition.onresult = (event: any) => {
+            let current = '';
+            for (let i = 0; i < event.results.length; i++) {
+              current += event.results[i][0].transcript;
+            }
+            if (current.trim()) {
+              setProblemText(current.trim());
+            }
+          };
+
+          recognition.onend = () => {
+            setVoiceState('IDLE');
+          };
+
+          recognition.onerror = () => {
+            setVoiceState('IDLE');
+          };
+
+          recognition.start();
+          recognitionRef.current = recognition;
+          return;
+        } catch (err) {
+          console.warn('SpeechRecognition error:', err);
+        }
+      }
+
       setTimeout(() => {
-        setVoiceState('PROCESSING');
-        setTimeout(() => {
-          setVoiceState('TRANSCRIPT');
-          setProblemText(
-            'मकान मालिक 11 महीने बाद 65,000 रुपये का सिक्योरिटी डिपॉजिट वापस नहीं कर रहा है। 30 दिन का नोटिस दिया था और चाबी भी सौंप दी थी।'
-          );
-        }, 1200);
-      }, 2000);
+        setVoiceState('IDLE');
+      }, 1500);
     } else {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
       setVoiceState('IDLE');
     }
   };
@@ -131,11 +167,11 @@ export default function HomePage() {
                 <span>Get Started Free</span>
               </a>
               <Link
-                href="/cases/LS-2026-0042"
+                href={activeCase ? `/cases/${activeCase.id}` : "/complaints"}
                 className="px-6 py-3.5 rounded-xl bg-white dark:bg-[#161F30] hover:bg-slate-50 dark:hover:bg-[#1E293B] border border-slate-200/80 dark:border-[#1E293B] text-slate-800 dark:text-slate-200 font-bold text-sm transition-all flex items-center gap-2 shadow-xs"
               >
                 <span className="material-symbols-outlined text-lg text-primary dark:text-blue-400">folder_open</span>
-                <span>Explore Sample Case Dossier</span>
+                <span>{activeCase ? 'Explore Active Case Dossier' : 'View Case Dossiers'}</span>
               </Link>
               <Link
                 href="/chat"

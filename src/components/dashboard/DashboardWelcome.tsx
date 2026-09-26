@@ -28,7 +28,7 @@ export const DashboardWelcome: React.FC<DashboardWelcomeProps> = ({ onOpenNewCom
             <span className="uppercase tracking-wider">CIVIC WORKSPACE ACTIVE</span>
             <span className="text-slate-300 dark:text-slate-600">•</span>
             <span className="text-on-surface-variant font-mono">
-              DOK: {activeCase?.id || 'LS-2026-0042'}
+              DOK: {activeCase?.id || 'NEW WORKSPACE'}
             </span>
             <span className="text-slate-300 dark:text-slate-600">•</span>
             <span className="text-on-surface-variant font-medium">

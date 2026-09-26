@@ -1,40 +1,48 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useLegalSaathi } from '../../context/LegalSaathiContext';
 import { CaseContextBanner } from '../../components/CaseContextBanner';
 import { LegalSourceCard } from '../../components/LegalSourceCard';
-import { VERIFIED_LEGAL_SOURCES } from '../../lib/mock-data';
+import { StatutorySource } from '../../lib/types';
+import { legalSaathiApi } from '../../lib/api';
 
 export default function LegalSourcesPage() {
   const { activeCase } = useLegalSaathi();
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sources, setSources] = useState<StatutorySource[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const currentCase = activeCase;
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    legalSaathiApi.getSources(searchQuery, selectedCategory, 60, 0)
+      .then((data) => {
+        if (isMounted) {
+          setSources(data.sources);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load sources from backend:', err);
+        if (isMounted) setLoading(false);
+      });
+    return () => { isMounted = false; };
+  }, [searchQuery, selectedCategory]);
 
   // Active case's verified sources + global repository
   const allSources = useMemo(() => {
     const caseSources = currentCase ? currentCase.legalSources : [];
     const caseSourceIds = new Set(caseSources.map((s) => s.id));
-    const otherSources = VERIFIED_LEGAL_SOURCES.filter((s) => !caseSourceIds.has(s.id));
+    const otherSources = sources.filter((s) => !caseSourceIds.has(s.id));
     return [...caseSources, ...otherSources];
-  }, [currentCase]);
+  }, [currentCase, sources]);
 
-  const filteredSources = useMemo(() => {
-    return allSources.filter((source) => {
-      const matchesCategory =
-        selectedCategory === 'ALL' || source.category === selectedCategory;
-      const matchesQuery =
-        !searchQuery.trim() ||
-        source.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        source.section.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        source.relevance.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (source.whyItMatters && source.whyItMatters.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesQuery;
-    });
-  }, [allSources, selectedCategory, searchQuery]);
+  const filteredSources = allSources;
 
   const categories: { id: string; label: string; count: number }[] = [
     { id: 'ALL', label: 'All Sources', count: allSources.length },

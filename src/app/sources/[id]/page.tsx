@@ -1,29 +1,48 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useLegalSaathi } from '../../../context/LegalSaathiContext';
 import { CaseContextBanner } from '../../../components/CaseContextBanner';
-import { VERIFIED_LEGAL_SOURCES } from '../../../lib/mock-data';
 import { StatutorySource } from '../../../lib/types';
+import { legalSaathiApi } from '../../../lib/api';
 
 export default function LegalSourceDetailPage() {
   const params = useParams();
   const sourceId = params?.id as string;
   const { activeCase, addLegalSourceToCase } = useLegalSaathi();
 
-  // Find source in active case or global verified list
   const currentCase = activeCase;
-  const source: StatutorySource | undefined =
-    currentCase?.legalSources.find((s) => s.id === sourceId) ||
-    VERIFIED_LEGAL_SOURCES.find((s) => s.id === sourceId) ||
-    VERIFIED_LEGAL_SOURCES[0];
+  const [source, setSource] = useState<StatutorySource | null>(() => {
+    return currentCase?.legalSources.find((s) => s.id === sourceId) || null;
+  });
+  const [loading, setLoading] = useState<boolean>(!source);
 
-  const [added, setAdded] = useState(
-    Boolean(currentCase?.legalSources.some((s) => s.id === source.id))
-  );
+  useEffect(() => {
+    let isMounted = true;
+    if (sourceId) {
+      legalSaathiApi.getSourceDetail(sourceId).then((fetched) => {
+        if (isMounted) {
+          if (fetched) setSource(fetched);
+          setLoading(false);
+        }
+      }).catch((err) => {
+        console.warn('Could not load source detail:', err);
+        if (isMounted) setLoading(false);
+      });
+    }
+    return () => { isMounted = false; };
+  }, [sourceId]);
+
+  const [added, setAdded] = useState(false);
   const [showFullText, setShowFullText] = useState(false);
+
+  useEffect(() => {
+    if (currentCase && source) {
+      setAdded(currentCase.legalSources.some((s) => s.id === source.id));
+    }
+  }, [currentCase, source]);
 
   const handleAddToCase = () => {
     if (currentCase && source) {
@@ -31,6 +50,37 @@ export default function LegalSourceDetailPage() {
       setAdded(true);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-background text-on-surface py-16 flex items-center justify-center">
+        <div className="flex items-center gap-3 text-xs text-on-surface-variant">
+          <span className="material-symbols-outlined text-lg animate-spin text-blue-600">sync</span>
+          <span>Loading verified statutory provision...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!source) {
+    return (
+      <div className="w-full min-h-screen bg-background text-on-surface py-16 px-4 max-w-3xl mx-auto">
+        <div className="p-8 rounded-2xl bg-surface-container-lowest dark:bg-[#0F131C] border border-outline-variant/30 text-center space-y-4">
+          <span className="material-symbols-outlined text-4xl text-amber-500">menu_book</span>
+          <h2 className="text-lg font-bold text-on-surface">Legal Source Not Found</h2>
+          <p className="text-xs text-on-surface-variant">
+            The statutory provision or citation with identifier &apos;{sourceId}&apos; could not be retrieved from the active knowledge base.
+          </p>
+          <Link
+            href="/sources"
+            className="inline-block px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors"
+          >
+            Browse All Legal Sources
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-background text-on-surface pb-16">

@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # AI / LLM Configuration
     GEMINI_API_KEY: str = ""
-    PRIMARY_LLM_MODEL: str = "gemini-2.5-flash"
+    PRIMARY_LLM_MODEL: str = "gemini-3.8-flash"
     FALLBACK_LLM_MODEL: str = "local-grounded-synthesis"
     LLM_TIMEOUT_SECONDS: float = 8.0
 
