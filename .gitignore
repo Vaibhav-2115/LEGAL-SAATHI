@@ -1,0 +1,25 @@
+# Ignore python virtual environments
+backend/venv/
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Ignore local databases and sqlite
+*.db
+*.sqlite3
+
+# Ignore environment variables
+.env
+.env.local
+
+# Ignore logs
+*.log
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
