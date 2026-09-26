@@ -1,0 +1,122 @@
+"""
+Legal Saathi - Synthetic Incident Cluster Generator (scripts/build_incident_clusters.py)
+Constructs synthetic anonymized incident clusters for the Community & Collective Action Engine
+per Section 13 of the Blueprint and Recommendation D of the Acquisition Plan.
+CRITICAL PRIVACY RULE: Zero real PII; synthetic anonymized patterns only.
+"""
+
+import hashlib
+import json
+import os
+from typing import Any, Dict, List
+
+RAW_INCIDENTS_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "raw", "incidents")
+
+
+SYNTHETIC_CLUSTERS: List[Dict[str, Any]] = [
+    {
+        "cluster_id": "cluster_bengaluru_deposit_withhold_01",
+        "issue_type": "tenancy",
+        "locality_bucket": "Bengaluru_Bellandur_OuterRingRoad",
+        "amount_bucket": "1_to_2_lakh",
+        "opposing_party_name_masked": "PropCo Real Estates / Individual Landlord Association",
+        "opposing_party_hash": hashlib.sha256("landlord_cluster_bellandur_propco".encode()).hexdigest()[:16],
+        "member_count": 8,
+        "explanation_text": "Multiple software professionals reported arbitrary 100% deductions of security deposits (averaging Rs. 1,40,000) citing routine painting and unproven wear-and-tear in Bellandur, Bengaluru upon vacating on 1-month notice.",
+        "sample_incidents": [
+            {
+                "incident_id": "inc_syn_blr_001",
+                "rent_amount": 35000,
+                "deposit_amount": 150000,
+                "amount_withheld": 150000,
+                "reason_cited": "Repainting, floor polishing, deep cleaning charges without bills",
+                "days_vacated": 45,
+                "legal_action_taken": "Legal notice dispatched under TPA Section 108"
+            },
+            {
+                "incident_id": "inc_syn_blr_002",
+                "rent_amount": 38000,
+                "deposit_amount": 160000,
+                "amount_withheld": 140000,
+                "reason_cited": "Deduction for fixture maintenance not mentioned in agreement",
+                "days_vacated": 60,
+                "legal_action_taken": "Drafting summary recovery suit Order 37 CPC"
+            }
+        ],
+        "collective_remedy_pathway": [
+            "Joint conciliation representation to Rent Authority / BBMP Ward Legal Cell",
+            "Consolidated legal notice on behalf of affected tenants",
+            "Model Tenancy Act Section 13(1) invocation (residential deposit capped at 2 months' rent)"
+        ]
+    },
+    {
+        "cluster_id": "cluster_mumbai_rera_delay_01",
+        "issue_type": "property",
+        "locality_bucket": "Mumbai_Thane_Ghodbunder",
+        "amount_bucket": "50_to_100_lakh",
+        "opposing_party_name_masked": "Skyline Heights Infrastructure LLP",
+        "opposing_party_hash": hashlib.sha256("builder_skyline_thane_ghodbunder".encode()).hexdigest()[:16],
+        "member_count": 14,
+        "explanation_text": "Group of home-buyers in Ghodbunder Road, Thane facing 42 months possession delay past RERA registered handover date without payment of delayed possession interest.",
+        "sample_incidents": [
+            {
+                "incident_id": "inc_syn_mum_001",
+                "total_flat_cost": 7500000,
+                "paid_amount": 6800000,
+                "possession_due_date": "2022-12-31",
+                "delay_months": 44,
+                "legal_action_taken": "Group complaint filed under RERA Section 31"
+            },
+            {
+                "incident_id": "inc_syn_mum_002",
+                "total_flat_cost": 8200000,
+                "paid_amount": 7500000,
+                "possession_due_date": "2023-03-31",
+                "delay_months": 41,
+                "legal_action_taken": "Claim for monthly delay interest at SBI MCLR + 2% under RERA Section 18"
+            }
+        ],
+        "collective_remedy_pathway": [
+            "Joint complaint under MahaRERA Section 31 for delay interest",
+            "Escalation to MahaRERA Conciliation Forum",
+            "Alternative demand for full refund with interest if occupancy certificate is refused"
+        ]
+    },
+    {
+        "cluster_id": "cluster_ecommerce_refund_denial_01",
+        "issue_type": "consumer",
+        "locality_bucket": "Pan_India_ECommerce",
+        "amount_bucket": "25k_to_50k",
+        "opposing_party_name_masked": "MegaCart Online Retail Solutions Pvt Ltd",
+        "opposing_party_hash": hashlib.sha256("megacart_ecom_refund_denial".encode()).hexdigest()[:16],
+        "member_count": 22,
+        "explanation_text": "Customers across Delhi, Hyderabad, and Pune reporting unilateral order cancellations with payment deducted and unfulfilled refunds exceeding 30 days.",
+        "sample_incidents": [
+            {
+                "incident_id": "inc_syn_ecom_001",
+                "item": "Smartphone",
+                "paid_amount": 34999,
+                "status": "Order marked delivered but never received; OTP not requested",
+                "legal_action_taken": "Docket registered on National Consumer Helpline (NCH 1915)"
+            }
+        ],
+        "collective_remedy_pathway": [
+            "Class action complaint through Central Consumer Protection Authority (CCPA)",
+            "e-Daakhil filing before District Consumer Forum under CPA Section 35",
+            "Claim for compensation for unfair trade practice and mental agony"
+        ]
+    }
+]
+
+
+def main():
+    os.makedirs(RAW_INCIDENTS_DIR, exist_ok=True)
+    out_path = os.path.join(RAW_INCIDENTS_DIR, "synthetic_incident_clusters.json")
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(SYNTHETIC_CLUSTERS, f, indent=2)
+
+    print(f"Generated {len(SYNTHETIC_CLUSTERS)} synthetic incident clusters in {out_path}")
+
+
+if __name__ == "__main__":
+    main()

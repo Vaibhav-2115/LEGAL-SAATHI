@@ -1,0 +1,102 @@
+[
+  {
+    "old_code": "IEA",
+    "old_section": "3",
+    "old_title": "Interpretation clause ('Evidence', 'Document', 'Proved')",
+    "new_code": "BSA",
+    "new_section": "2",
+    "new_title": "Definitions",
+    "category": "Preliminary",
+    "change_notes": "Document definition expanded to include electronic records, digital emails, server logs, smartphone messages, location data."
+  },
+  {
+    "old_code": "IEA",
+    "old_section": "24 / 25 / 26",
+    "old_title": "Confession caused by inducement / Confession to police officer not to be proved",
+    "new_code": "BSA",
+    "new_section": "22 / 23",
+    "new_title": "Confession when irrelevant / Confession to police officer",
+    "category": "Confessions",
+    "change_notes": "Confessions to police officers continue to be inadmissible as substantive evidence."
+  },
+  {
+    "old_code": "IEA",
+    "old_section": "27",
+    "old_title": "How much of information received from accused may be proved (Discovery of fact)",
+    "new_code": "BSA",
+    "new_section": "23(2)",
+    "new_title": "Information leading to discovery of fact",
+    "category": "Confessions",
+    "change_notes": "Integrated directly into Section 23 as a proviso/exception for facts discovered in consequence of information given by accused."
+  },
+  {
+    "old_code": "IEA",
+    "old_section": "32(1)",
+    "old_title": "Cases in which statement of relevant fact by person who is dead is relevant (Dying Declaration)",
+    "new_code": "BSA",
+    "new_section": "26(a)",
+    "new_title": "Statements by persons who cannot be called as witnesses (Dying declaration)",
+    "category": "Statements",
+    "change_notes": "Substantively identical legal standard for admissibility of dying declarations regarding cause of death."
+  },
+  {
+    "old_code": "IEA",
+    "old_section": "45",
+    "old_title": "Opinions of experts",
+    "new_code": "BSA",
+    "new_section": "39",
+    "new_title": "Opinions of experts",
+    "category": "Expert Opinion",
+    "change_notes": "Broadened beyond science/art to include digital/cyber forensics and electronic device analysis experts."
+  },
+  {
+    "old_code": "IEA",
+    "old_section": "61 / 62 / 63",
+    "old_title": "Proof of contents of documents (Primary and Secondary Evidence)",
+    "new_code": "BSA",
+    "new_section": "56 / 57 / 58",
+    "new_title": "Proof of documents, Primary evidence, Secondary evidence",
+    "category": "Documentary Evidence",
+    "change_notes": "Section 57 explicitly categorizes digital storage media and synchronized clouds as primary documents."
+  },
+  {
+    "old_code": "IEA",
+    "old_section": "65B",
+    "old_title": "Admissibility of electronic records (Certificate requirement)",
+    "new_code": "BSA",
+    "new_section": "63",
+    "new_title": "Admissibility of electronic records and certificate requirement",
+    "category": "Electronic Evidence",
+    "change_notes": "Section 63 outlines electronic admissibility. Schedule provides a standardized statutory certificate format for electronic records."
+  },
+  {
+    "old_code": "IEA",
+    "old_section": "101 / 102",
+    "old_title": "Burden of proof / On whom burden of proof lies",
+    "new_code": "BSA",
+    "new_section": "104 / 105",
+    "new_title": "Burden of proof / On whom burden of proof lies",
+    "category": "Burden of Proof",
+    "change_notes": "Standard of proof in criminal trials remains beyond reasonable doubt on prosecution."
+  },
+  {
+    "old_code": "IEA",
+    "old_section": "113B",
+    "old_title": "Presumption as to dowry death",
+    "new_code": "BSA",
+    "new_section": "118",
+    "new_title": "Presumption as to dowry death",
+    "category": "Presumptions",
+    "change_notes": "Court shall presume dowry death if shown that woman was subjected to cruelty/harassment for dowry soon before death."
+  },
+  {
+    "old_code": "IEA",
+    "old_section": "115",
+    "old_title": "Estoppel",
+    "new_code": "BSA",
+    "new_section": "121",
+    "new_title": "Estoppel",
+    "category": "Estoppel",
+    "change_notes": "When one person by declaration, act or omission intentionally caused another to believe a thing to be true."
+  }
+]

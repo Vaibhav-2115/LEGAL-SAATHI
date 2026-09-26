@@ -1,0 +1,162 @@
+[
+  {
+    "old_code": "CrPC",
+    "old_section": "41 / 41A",
+    "old_title": "When police may arrest without warrant / Notice of appearance",
+    "new_code": "BNSS",
+    "new_section": "35",
+    "new_title": "When police may arrest without warrant",
+    "category": "Arrest",
+    "change_notes": "Prior permission of Deputy SP required for arresting persons above 60 years or for offences punishable with less than 3 years (with caveats). Notice of appearance integrated."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "50 / 50A",
+    "old_title": "Person arrested to be informed of grounds of arrest and right to bail / Obligation to inform relative",
+    "new_code": "BNSS",
+    "new_section": "47 / 48",
+    "new_title": "Person arrested to be informed of grounds of arrest / Designated Police Officer",
+    "category": "Arrest",
+    "change_notes": "Mandates designated police officer at every district and police station to display names and categories of arrested persons."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "125",
+    "old_title": "Order for maintenance of wives, children and parents",
+    "new_code": "BNSS",
+    "new_section": "144",
+    "new_title": "Order for maintenance of wives, children and parents",
+    "category": "Maintenance",
+    "change_notes": "Summary statutory remedy for maintenance. Magistrate may order monthly allowance. BNSS retains essence with simplified procedural timelines."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "144",
+    "old_title": "Power to issue order in urgent cases of nuisance or apprehended danger",
+    "new_code": "BNSS",
+    "new_section": "163",
+    "new_title": "Power to issue order in urgent cases of nuisance or apprehended danger",
+    "category": "Public Order",
+    "change_notes": "District Magistrate / Sub-divisional Magistrate power. Valid up to 2 months, extendable by State Govt up to 6 months."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "154",
+    "old_title": "Information in cognizable cases (First Information Report - FIR)",
+    "new_code": "BNSS",
+    "new_section": "173",
+    "new_title": "Information in cognizable cases (FIR, Zero FIR & E-FIR)",
+    "category": "Investigation",
+    "change_notes": "Statutory recognition of 'Zero FIR' (must register irrespective of jurisdiction and transfer). Expressly authorizes electronic communication (e-FIR) to be signed within 3 days. Preliminary inquiry permitted for offences punishable with 3-7 years within 14 days."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "160",
+    "old_title": "Police officer's power to require attendance of witnesses",
+    "new_code": "BNSS",
+    "new_section": "179",
+    "new_title": "Police officer's power to require attendance of witnesses",
+    "category": "Investigation",
+    "change_notes": "Exemption from attending police station extended to persons under 15, over 60 (previously 65), women, and persons with disability/acute illness."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "161",
+    "old_title": "Examination of witnesses by police",
+    "new_code": "BNSS",
+    "new_section": "180",
+    "new_title": "Examination of witnesses by police",
+    "category": "Investigation",
+    "change_notes": "Permits statement recording through audio-video electronic means including mobile phones."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "164",
+    "old_title": "Recording of confessions and statements by Magistrate",
+    "new_code": "BNSS",
+    "new_section": "183",
+    "new_title": "Recording of confessions and statements",
+    "category": "Investigation",
+    "change_notes": "Audio-video recording permitted. In sexual offences, statement of victim must be recorded by woman Magistrate or in presence of woman."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "167",
+    "old_title": "Procedure when investigation cannot be completed in twenty-four hours (Remand)",
+    "new_code": "BNSS",
+    "new_section": "187",
+    "new_title": "Procedure when investigation cannot be completed in 24 hours",
+    "category": "Investigation",
+    "change_notes": "Police custody of up to 15 days can now be sought in whole or in parts during the initial 40 or 60 days of the total detention period."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "100 / 102",
+    "old_title": "Search and seizure of property",
+    "new_code": "BNSS",
+    "new_section": "105",
+    "new_title": "Recording of search and seizure through audio-video electronic means",
+    "category": "Search & Seizure",
+    "change_notes": "Mandates audio-video electronic recording (videography) of the entire search and seizure process, including preparation of seizure list without delay."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "436",
+    "old_title": "In what cases bail to be taken (Bailable offences)",
+    "new_code": "BNSS",
+    "new_section": "478",
+    "new_title": "In what cases bail to be taken",
+    "category": "Bail",
+    "change_notes": "Right to bail is absolute in bailable offences upon furnishing surety or personal bond. Indigent persons released on personal recognizance."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "436A",
+    "old_title": "Maximum period for which an undertrial prisoner can be detained",
+    "new_code": "BNSS",
+    "new_section": "479",
+    "new_title": "Maximum period for which an undertrial prisoner can be detained",
+    "category": "Bail",
+    "change_notes": "Major relief: A first-time offender (never previously convicted of any offence) shall be released on bond/bail after serving one-third of the maximum imprisonment period."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "437",
+    "old_title": "When bail may be taken in case of non-bailable offence",
+    "new_code": "BNSS",
+    "new_section": "480",
+    "new_title": "When bail may be taken in non-bailable offence",
+    "category": "Bail",
+    "change_notes": "Discretion of Magistrate. Proviso allows bail to women, sick, infirm, or persons under 16."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "438",
+    "old_title": "Direction for grant of bail to person apprehending arrest (Anticipatory Bail)",
+    "new_code": "BNSS",
+    "new_section": "482",
+    "new_title": "Direction for grant of bail to person apprehending arrest",
+    "category": "Bail",
+    "change_notes": "Sessions Court and High Court retain anticipatory bail jurisdiction. Clarifications on conditions regarding presence at interrogation."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "439",
+    "old_title": "Special powers of High Court or Court of Session regarding bail",
+    "new_code": "BNSS",
+    "new_section": "483",
+    "new_title": "Special powers of High Court or Court of Session regarding bail",
+    "category": "Bail",
+    "change_notes": "Concurrent power of Sessions Court and High Court for regular bail and cancellation of bail."
+  },
+  {
+    "old_code": "CrPC",
+    "old_section": "482",
+    "old_title": "Saving of inherent powers of High Court",
+    "new_code": "BNSS",
+    "new_section": "528",
+    "new_title": "Saving of inherent powers of High Court",
+    "category": "Inherent Powers",
+    "change_notes": "High Court's inherent jurisdiction to prevent abuse of process of any court or secure ends of justice (quashing FIRs, criminal complaints)."
+  }
+]

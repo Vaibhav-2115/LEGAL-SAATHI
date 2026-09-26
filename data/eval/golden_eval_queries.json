@@ -1,0 +1,307 @@
+[
+  {
+    "query_id": "eval_tenancy_01",
+    "category": "tenancy",
+    "user_query": "My landlord in Bengaluru is refusing to return my security deposit of Rs 1,50,000 after I vacated the flat on 1 month notice. What are my legal rights and options?",
+    "expected_statutory_basis": [
+      "Transfer of Property Act, 1882",
+      "Model Tenancy Act / State Rent Control Laws",
+      "Consumer Protection Act, 2019"
+    ],
+    "expected_sections": [
+      "TPA Section 108",
+      "Model Tenancy Act Sec 13(1)"
+    ],
+    "key_legal_principles": [
+      "Landlord can only deduct reasonable, pre-agreed wear-and-tear or unpaid utility bills/rent.",
+      "Under Model Tenancy principles, residential security deposit is capped at a maximum of two months' rent.",
+      "First step: Issue a formal legal notice demanding refund within 15 days.",
+      "If unpaid: File a summary civil suit for recovery of money (Order 37 CPC) or approach Rent Court/Authority."
+    ],
+    "mandatory_escalation_or_disclaimer": "Inform user that security deposit recovery is governed by the registered rental agreement and local state tenancy act.",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "eval_tenancy_02",
+    "category": "tenancy",
+    "user_query": "Can my landlord suddenly cut off my water and electricity connection because I delayed rent by 10 days?",
+    "expected_statutory_basis": [
+      "Transfer of Property Act, 1882",
+      "Model Tenancy Act, 2021",
+      "State Rent Control Acts"
+    ],
+    "expected_sections": [
+      "Model Tenancy Act Section 20",
+      "Delhi Rent Control Act Sec 45 / Karnataka Rent Act Sec 38"
+    ],
+    "key_legal_principles": [
+      "No landlord has the legal right to disconnect essential supplies or services (water, electricity, sanitary services) to coerce a tenant.",
+      "Withholding essential supplies is a punishable offence and an illegal act under state rent laws.",
+      "Tenant can immediately petition the Rent Authority/Controller for urgent restoration of services and compensation."
+    ],
+    "mandatory_escalation_or_disclaimer": "Emergency step: Contact local police station if essential utilities are physically vandalized or locked.",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "eval_tenancy_03",
+    "category": "tenancy",
+    "user_query": "My landlord gave me a verbal notice to vacate the house in 2 days. Is this valid under Indian law?",
+    "expected_statutory_basis": [
+      "Transfer of Property Act, 1882"
+    ],
+    "expected_sections": [
+      "TPA Section 106",
+      "TPA Section 111(g)"
+    ],
+    "key_legal_principles": [
+      "Verbal notice is legally invalid for determining a lease.",
+      "Under Section 106 of the Transfer of Property Act, a notice to quit must be in writing, signed, and delivered with at least 15 days notice expiring with the end of a month of tenancy (for residential leases).",
+      "A landlord cannot forcibly dispossess a tenant without due process of law."
+    ],
+    "mandatory_escalation_or_disclaimer": "Clarify that forcible extra-judicial eviction can be resisted through an injunction from a civil court.",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "eval_consumer_01",
+    "category": "consumer",
+    "user_query": "I bought a laptop for Rs 65,000 from an online marketplace. The screen was broken on delivery, but customer support refused refund or replacement. Where can I file a complaint?",
+    "expected_statutory_basis": [
+      "Consumer Protection Act, 2019",
+      "Consumer Protection (E-Commerce) Rules, 2020"
+    ],
+    "expected_sections": [
+      "CPA Section 2(11) (Deficiency)",
+      "CPA Section 2(47) (Unfair Trade Practice)",
+      "CPA Section 34 / 35"
+    ],
+    "key_legal_principles": [
+      "Selling damaged goods and refusing refund/replacement constitutes 'deficiency in service' and 'unfair trade practice'.",
+      "The consumer can file a complaint before the District Consumer Disputes Redressal Commission.",
+      "Complaints can be filed online via the e-Daakhil portal (edaakhil.nic.in) or National Consumer Helpline (1915).",
+      "District Commission has pecuniary jurisdiction up to Rs 50 Lakhs (and complainant can file where they reside)."
+    ],
+    "mandatory_escalation_or_disclaimer": "Preserve unboxing video, courier slip, invoice, and email correspondence as evidence.",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "eval_consumer_02",
+    "category": "consumer",
+    "user_query": "What is the pecuniary jurisdiction limit of District, State, and National Consumer Commissions?",
+    "expected_statutory_basis": [
+      "Consumer Protection Act, 2019",
+      "Consumer Protection (Jurisdiction of Commissions) Rules, 2021"
+    ],
+    "expected_sections": [
+      "CPA Section 34",
+      "CPA Section 47",
+      "CPA Section 58"
+    ],
+    "key_legal_principles": [
+      "District Commission: Claims where value of goods/services paid as consideration does not exceed Rs 50 Lakhs.",
+      "State Commission: Claims where value exceeds Rs 50 Lakhs but does not exceed Rs 2 Crores.",
+      "National Commission (NCDRC): Claims where value exceeds Rs 2 Crores."
+    ],
+    "mandatory_escalation_or_disclaimer": "Jurisdiction is calculated based on consideration actually paid, not on total compensation claimed.",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "eval_consumer_03",
+    "category": "consumer",
+    "user_query": "What is the limitation period for filing a complaint in the Consumer Forum?",
+    "expected_statutory_basis": [
+      "Consumer Protection Act, 2019"
+    ],
+    "expected_sections": [
+      "CPA Section 69"
+    ],
+    "key_legal_principles": [
+      "The limitation period is 2 years from the date on which the cause of action arose.",
+      "A complaint may be entertained after 2 years only if the complainant satisfies the Commission that they had sufficient cause for delay."
+    ],
+    "mandatory_escalation_or_disclaimer": "Never miss the 2-year deadline as condonation of delay is at the Commission's discretion.",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "eval_cheque_01",
+    "category": "cheque_bounce",
+    "user_query": "A client gave me a cheque of Rs 3,00,000 which bounced due to 'Insufficient Funds'. What are the strict legal steps and deadlines to file a case under Section 138?",
+    "expected_statutory_basis": [
+      "Negotiable Instruments Act, 1881"
+    ],
+    "expected_sections": [
+      "NIA Section 138",
+      "NIA Section 142",
+      "NIA Section 143A"
+    ],
+    "key_legal_principles": [
+      "Cheque must have been presented within validity period (3 months).",
+      "Bank return memo received: Statutory demand notice must be dispatched within 30 days of receiving return memo.",
+      "Notice must give 15 days to the drawer to make payment from date of receipt.",
+      "If drawer fails to pay within 15 days, cause of action arises; criminal complaint must be filed within 30 days before Judicial Magistrate (Sec 142).",
+      "Interim compensation up to 20% of cheque amount can be ordered under Section 143A."
+    ],
+    "mandatory_escalation_or_disclaimer": "Strict adherence to 30-day notice and 30-day filing limitation is jurisdictional; any delay must be condoned by court.",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "eval_cheque_02",
+    "category": "cheque_bounce",
+    "user_query": "Can a person be imprisoned for a cheque bounce case under Section 138?",
+    "expected_statutory_basis": [
+      "Negotiable Instruments Act, 1881"
+    ],
+    "expected_sections": [
+      "NIA Section 138"
+    ],
+    "key_legal_principles": [
+      "Yes, Section 138 is a criminal offence punishable with imprisonment for a term which may extend to two years, or with fine which may extend to twice the amount of the cheque, or with both.",
+      "The offence is bailable and compoundable under Section 147 of the Act."
+    ],
+    "mandatory_escalation_or_disclaimer": "It is compoundable at any stage, even during trial or appeal upon payment.",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "eval_criminal_01",
+    "category": "criminal_procedure",
+    "user_query": "What are my rights if a police officer stops and arrests me without a warrant in India?",
+    "expected_statutory_basis": [
+      "Code of Criminal Procedure, 1973 / BNSS 2023",
+      "Constitution of India"
+    ],
+    "expected_sections": [
+      "CrPC Sec 50/50A (BNSS Sec 47/48)",
+      "CrPC Sec 57 (BNSS Sec 58)",
+      "Constitution Article 22"
+    ],
+    "key_legal_principles": [
+      "Right to know grounds of arrest immediately and whether offence is bailable.",
+      "Right to have a relative or nominated friend informed immediately of the arrest and place of custody.",
+      "Right to consult and be defended by a legal practitioner of choice.",
+      "Mandatory medical examination at time of arrest (Sec 54 / BNSS Sec 53).",
+      "Mandatory production before the nearest Judicial Magistrate within 24 hours (excluding journey time)."
+    ],
+    "mandatory_escalation_or_disclaimer": "D.K. Basu guidelines laid down by Supreme Court must be followed by every arresting officer.",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "eval_criminal_02",
+    "category": "criminal_procedure",
+    "user_query": "A local police station refused to lodge my FIR for an assault that happened in an adjacent district. What is a Zero FIR and what can I do?",
+    "expected_statutory_basis": [
+      "BNSS 2023 / CrPC 1973",
+      "Supreme Court guidelines (Lalita Kumari v. Govt of UP)"
+    ],
+    "expected_sections": [
+      "BNSS Section 173(1)",
+      "CrPC Section 154"
+    ],
+    "key_legal_principles": [
+      "A police station cannot refuse to register an FIR for a cognizable offence citing territorial jurisdiction.",
+      "They must register a 'Zero FIR', initiate urgent action/medical aid, and subsequently transfer the docket to the jurisdictional station.",
+      "If police still refuse: Send complaint in writing to Superintendent of Police (SP/DCP) by registered post under BNSS 173(4) / CrPC 154(3), or file private complaint before Magistrate under BNSS 223 / CrPC 156(3)."
+    ],
+    "mandatory_escalation_or_disclaimer": "Zero FIR is now statutorily codified under Section 173 of Bharatiya Nagarik Suraksha Sanhita, 2023.",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "eval_criminal_03",
+    "category": "criminal_procedure",
+    "user_query": "What is the difference between Anticipatory Bail and Regular Bail under the new criminal codes?",
+    "expected_statutory_basis": [
+      "Bharatiya Nagarik Suraksha Sanhita, 2023 / CrPC 1973"
+    ],
+    "expected_sections": [
+      "BNSS Section 482 (CrPC 438)",
+      "BNSS Section 480 / 483 (CrPC 437 / 439)"
+    ],
+    "key_legal_principles": [
+      "Anticipatory Bail (BNSS 482 / CrPC 438): Sought prior to arrest when a person has reasonable apprehension of being arrested in a non-bailable offence. Operates at the moment of arrest.",
+      "Regular Bail (BNSS 480/483 / CrPC 437/439): Sought after the person has already been arrested and is in police or judicial custody.",
+      "Jurisdiction for anticipatory bail lies with the Sessions Court or High Court."
+    ],
+    "mandatory_escalation_or_disclaimer": "Anticipatory bail cannot be claimed as a matter of absolute right and is subject to judicial discretion based on nature and gravity of accusation.",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "eval_rti_01",
+    "category": "rti",
+    "user_query": "I filed an RTI application with the municipal corporation regarding road maintenance funds, but received no response after 35 days. What is my remedy?",
+    "expected_statutory_basis": [
+      "Right to Information Act, 2005"
+    ],
+    "expected_sections": [
+      "RTI Act Section 7(1)",
+      "RTI Act Section 19(1)"
+    ],
+    "key_legal_principles": [
+      "Public Information Officer (PIO) must provide information within 30 days of receipt of application.",
+      "Failure to respond within 30 days is deemed refusal under Section 7(2).",
+      "Remedy: File a First Appeal under Section 19(1) before the designated First Appellate Authority (FAA) within 30 days.",
+      "If First Appeal is rejected or unresponded within 30-45 days, file a Second Appeal before the State/Central Information Commission under Section 19(3)."
+    ],
+    "mandatory_escalation_or_disclaimer": "PIO is liable for penalty of Rs 250 per day up to Rs 25,000 under Section 20 for unjustified delay.",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "eval_legal_aid_01",
+    "category": "legal_aid",
+    "user_query": "Who is eligible for free legal aid in India and where should an indigent person apply?",
+    "expected_statutory_basis": [
+      "Legal Services Authorities Act, 1987",
+      "Constitution of India Article 39A"
+    ],
+    "expected_sections": [
+      "LSA Act Section 12",
+      "LSA Act Section 13"
+    ],
+    "key_legal_principles": [
+      "Eligible categories under Section 12: Women and children, members of SC/ST, victims of trafficking/begar, persons with disability, victims of mass disaster/violence, industrial workmen, persons in custody.",
+      "Income criteria: Persons whose annual income is less than prescribed state limit (typically Rs 3,00,000 in Delhi/many states; Rs 5,00,000 for SC/High Court in certain states).",
+      "Where to apply: District Legal Services Authority (DLSA) at district court, Taluk Legal Services Committee, or State Legal Services Authority (SLSA).",
+      "National Legal Aid Helpline: 15100 (toll-free)."
+    ],
+    "mandatory_escalation_or_disclaimer": "Free legal aid covers lawyer fees, court fees, drafting charges, and process fees completely free of cost.",
+    "difficulty": "easy"
+  },
+  {
+    "query_id": "eval_rera_01",
+    "category": "property",
+    "user_query": "The builder promised possession of my flat by December 2022, but the building is still under construction in 2026. What can I claim under RERA?",
+    "expected_statutory_basis": [
+      "Real Estate (Regulation and Development) Act, 2016 (RERA)"
+    ],
+    "expected_sections": [
+      "RERA Section 18",
+      "RERA Section 31"
+    ],
+    "key_legal_principles": [
+      "Under Section 18(1), allottee has two distinct choices:",
+      "Option A (Withdraw from project): Builder must refund full amount received with prescribed interest (SBI MCLR + 2%) and compensation.",
+      "Option B (Stay in project): Builder must pay monthly interest for every month of delay till possession is handed over.",
+      "Complaint can be filed under Section 31 before the State Real Estate Regulatory Authority."
+    ],
+    "mandatory_escalation_or_disclaimer": "Check RERA registration number and official RERA project completion date on state RERA portal.",
+    "difficulty": "medium"
+  },
+  {
+    "query_id": "eval_mact_01",
+    "category": "motor_accident",
+    "user_query": "What is the procedure and timeline to claim compensation for a road accident injury in India?",
+    "expected_statutory_basis": [
+      "Motor Vehicles Act, 1988 (as amended in 2019)"
+    ],
+    "expected_sections": [
+      "MVA Section 166",
+      "MVA Section 149",
+      "MVA Section 161"
+    ],
+    "key_legal_principles": [
+      "Claim petition must be filed before the Motor Accident Claims Tribunal (MACT).",
+      "Under the 2019 amendment (Section 166(3)), a claim petition must be filed within 6 months of the occurrence of the accident.",
+      "Police must prepare and submit Detailed Accident Report (DAR) within statutory time frame.",
+      "Victim or legal heirs can claim against driver, owner, and insurance company."
+    ],
+    "mandatory_escalation_or_disclaimer": "Strict 6-month limitation introduced by 2019 amendment must be guarded against.",
+    "difficulty": "medium"
+  }
+]
