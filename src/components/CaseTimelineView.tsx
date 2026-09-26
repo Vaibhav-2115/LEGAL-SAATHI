@@ -101,10 +101,10 @@ export const CaseTimelineView: React.FC<CaseTimelineViewProps> = ({
             <span className="material-symbols-outlined">timeline</span>
           </div>
           <div className="min-w-0">
-            <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block">
               Current Case Stage
             </span>
-            <span className="text-sm font-extrabold text-primary dark:text-primary-fixed truncate block">
+            <span className="text-xs sm:text-sm font-extrabold text-primary dark:text-primary-fixed leading-tight line-clamp-2">
               {currentStage} (In Progress)
             </span>
           </div>
@@ -116,13 +116,13 @@ export const CaseTimelineView: React.FC<CaseTimelineViewProps> = ({
             <span className="material-symbols-outlined">check_circle</span>
           </div>
           <div className="min-w-0">
-            <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block">
               Last Completed Activity
             </span>
-            <span className="text-xs font-bold text-on-surface truncate block">
+            <span className="text-xs font-bold text-on-surface leading-tight line-clamp-2">
               {lastCompletedEvent.title}
             </span>
-            <span className="text-[10px] text-on-surface-variant block">
+            <span className="text-[10px] text-on-surface-variant block mt-0.5">
               {lastCompletedEvent.date}
             </span>
           </div>
@@ -134,15 +134,15 @@ export const CaseTimelineView: React.FC<CaseTimelineViewProps> = ({
             <span className="material-symbols-outlined">arrow_forward</span>
           </div>
           <div className="min-w-0">
-            <span className="text-[11px] font-bold text-secondary dark:text-secondary-fixed uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-secondary dark:text-secondary-fixed uppercase tracking-wider block">
               Next Expected Action
             </span>
-            <span className="text-xs font-bold text-on-surface truncate block">
+            <span className="text-xs font-bold text-on-surface leading-tight line-clamp-2">
               {nextStepTitle}
             </span>
             <Link
               href={nextStepActionUrl}
-              className="text-[11px] text-primary hover:underline font-semibold inline-block"
+              className="text-[11px] text-primary hover:underline font-semibold inline-block mt-0.5"
             >
               Proceed to Action →
             </Link>

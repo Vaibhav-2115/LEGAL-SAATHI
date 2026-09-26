@@ -35,7 +35,7 @@ interface LegalSaathiContextType {
   setPendingProblem: (text: string) => void;
   darkMode: boolean;
   toggleDarkMode: () => void;
-  createCaseFromProblem: (problem: string) => string;
+  createCaseFromProblem: (problem: string, customDetails?: Partial<LegalCase>) => string;
   updateEvidenceStatus: (caseId: string, evidenceId: string, status: EvidenceStatus) => void;
   addEvidenceItem: (caseId: string, item: Omit<EvidenceItem, 'id'>) => void;
   addLegalSourceToCase: (caseId: string, source: StatutorySource) => void;
@@ -198,18 +198,19 @@ export function LegalSaathiProvider({ children }: { children: React.ReactNode })
 
   const activeCase = cases.find((c) => c.id === activeCaseId) || cases[0];
 
-  const createCaseFromProblem = (problem: string): string => {
+  const createCaseFromProblem = (problem: string, customDetails?: Partial<LegalCase>): string => {
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const newCaseId = `LS-2026-${randomSuffix}`;
     const newCase: LegalCase = {
       id: newCaseId,
-      title: problem.slice(0, 42) + (problem.length > 42 ? '...' : ''),
-      category: 'Civil & Statutory Rights',
-      jurisdiction: 'Jurisdiction Pending Clarification',
-      status: 'UNDERSTANDING',
-      currentStage: 'UNDERSTAND',
-      summary: problem,
-      citizenStatement: problem,
+      title: customDetails?.title || (problem.slice(0, 42) + (problem.length > 42 ? '...' : '')),
+      category: customDetails?.category || 'Civil & Statutory Rights',
+      jurisdiction: customDetails?.jurisdiction || 'Jurisdiction Pending Clarification',
+      claimAmount: customDetails?.claimAmount,
+      status: customDetails?.status || 'UNDERSTANDING',
+      currentStage: customDetails?.currentStage || 'UNDERSTAND',
+      summary: customDetails?.summary || problem,
+      citizenStatement: customDetails?.citizenStatement || problem,
       createdAt: new Date().toISOString().split('T')[0],
       updatedAt: 'Just now',
       totalEvidenceCount: 3,
@@ -217,7 +218,7 @@ export function LegalSaathiProvider({ children }: { children: React.ReactNode })
       keyFacts: [
         {
           id: `f-${Date.now()}`,
-          statement: problem,
+          statement: customDetails?.summary || problem,
           category: 'Citizen Initial Account',
           confidence: 'MEDIUM',
           source: 'CITIZEN_ACCOUNT'

@@ -38,7 +38,7 @@ export default function SimilarCasesPage() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>
-              Phase 3 • <strong className="text-on-surface">Legal Saathi Similar Cases Engine</strong>
+              <strong className="text-on-surface">Legal Saathi Similar Cases Engine</strong>
             </span>
           </div>
         </div>

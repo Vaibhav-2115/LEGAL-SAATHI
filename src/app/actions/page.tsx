@@ -141,7 +141,7 @@ export default function ActionCenterPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-on-surface-variant">
           <div className="flex items-center gap-2">
             <Link
-              href="/"
+              href="/dashboard"
               className="text-primary dark:text-primary-fixed hover:text-secondary font-semibold transition-colors"
             >
               Dashboard

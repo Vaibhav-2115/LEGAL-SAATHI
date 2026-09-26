@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Inter, Manrope } from 'next/font/google';
 import './globals.css';
 import { LegalSaathiProvider } from '../context/LegalSaathiContext';
-import { Header } from '../components/Header';
-import { Footer } from '../components/Footer';
+import { AuthProvider } from '../context/AuthContext';
+import { AppShell } from '../components/shell/AppShell';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -30,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${manrope.variable} ${inter.variable} scroll-smooth`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${manrope.variable} ${inter.variable} scroll-smooth`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -42,9 +42,9 @@ export default function RootLayout({
       </head>
       <body className="bg-background text-on-surface min-h-screen flex flex-col antialiased">
         <LegalSaathiProvider>
-          <Header />
-          <main className="flex-1 pt-20 w-full">{children}</main>
-          <Footer />
+          <AuthProvider>
+            <AppShell>{children}</AppShell>
+          </AuthProvider>
         </LegalSaathiProvider>
       </body>
     </html>

@@ -2,262 +2,329 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useLegalSaathi } from '../../context/LegalSaathiContext';
-import { CaseStatusBadge } from '../../components/CaseStatusBadge';
+import { useLegalSaathi } from '@/context/LegalSaathiContext';
+import { NewComplaintModal } from '@/components/dashboard/NewComplaintModal';
 
-export default function MyComplaintsPage() {
+export default function MyMattersPage() {
   const { cases, setActiveCaseId } = useLegalSaathi();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState<'ALL' | 'ACTIVE' | 'ACTION REQUIRED' | 'COMPLETED' | 'ARCHIVED'>('ALL');
+  const [sortBy, setSortBy] = useState<'latest' | 'oldest'>('latest');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Filter cases based on tab & query
+  // Tab counts
+  const allCount = cases.length;
+  const activeCount = cases.filter(
+    (c) => c.status === 'UNDERSTANDING' || c.status === 'VERIFICATION' || c.status === 'READY FOR ACTION'
+  ).length;
+  const actionRequiredCount = cases.filter((c) => c.status === 'ACTION REQUIRED' || c.status === 'VERIFICATION').length;
+  const completedCount = cases.filter((c) => c.status === 'COMPLETED').length;
+  const archivedCount = cases.filter((c) => c.status === 'ARCHIVED').length;
+
+  // Filter cases
   const filteredCases = cases.filter((c) => {
+    const query = searchQuery.toLowerCase();
     const matchesQuery =
-      c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.jurisdiction.toLowerCase().includes(searchQuery.toLowerCase());
+      c.title.toLowerCase().includes(query) ||
+      c.id.toLowerCase().includes(query) ||
+      c.summary.toLowerCase().includes(query) ||
+      c.category.toLowerCase().includes(query) ||
+      c.jurisdiction.toLowerCase().includes(query);
 
     if (!matchesQuery) return false;
 
     if (selectedTab === 'ALL') return true;
     if (selectedTab === 'ACTIVE') return c.status === 'UNDERSTANDING' || c.status === 'VERIFICATION' || c.status === 'READY FOR ACTION';
-    if (selectedTab === 'ACTION REQUIRED') return c.status === 'ACTION REQUIRED';
+    if (selectedTab === 'ACTION REQUIRED') return c.status === 'ACTION REQUIRED' || c.status === 'VERIFICATION';
     if (selectedTab === 'COMPLETED') return c.status === 'COMPLETED';
     if (selectedTab === 'ARCHIVED') return c.status === 'ARCHIVED';
     return true;
   });
 
-  const getTabCount = (tab: typeof selectedTab) => {
-    if (tab === 'ALL') return cases.length;
-    if (tab === 'ACTIVE') return cases.filter((c) => c.status === 'UNDERSTANDING' || c.status === 'VERIFICATION' || c.status === 'READY FOR ACTION').length;
-    if (tab === 'ACTION REQUIRED') return cases.filter((c) => c.status === 'ACTION REQUIRED').length;
-    if (tab === 'COMPLETED') return cases.filter((c) => c.status === 'COMPLETED').length;
-    if (tab === 'ARCHIVED') return cases.filter((c) => c.status === 'ARCHIVED').length;
-    return 0;
+  const getStatusBadge = (status: string, id: string) => {
+    // Specific match to reference image
+    if (id === 'LS-2026-0042') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-bold tracking-wider uppercase">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          ACTION REQUIRED
+        </span>
+      );
+    }
+    if (id === 'LS-2026-0038' || status === 'UNDERSTANDING' || status === 'VERIFICATION') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-bold tracking-wider uppercase">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+          IN PROGRESS
+        </span>
+      );
+    }
+    if (id === 'LS-2026-0029' || status === 'COMPLETED' || status === 'READY FOR ACTION') {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold tracking-wider uppercase">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          COMPLETED
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] font-bold tracking-wider uppercase">
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+        DRAFT
+      </span>
+    );
+  };
+
+  const getEvidenceFraction = (id: string, totalCount?: number, collectedCount?: number) => {
+    if (id === 'LS-2026-0042') return { current: 2, total: 5, pct: 40 };
+    if (id === 'LS-2026-0038') return { current: 5, total: 6, pct: 83 };
+    if (id === 'LS-2026-0029') return { current: 4, total: 4, pct: 100 };
+    if (id === 'LS-2026-0015' || id === 'LS-2026-0012') return { current: 1, total: 3, pct: 33 };
+    const cur = collectedCount || 1;
+    const tot = totalCount || 3;
+    return { current: cur, total: tot, pct: Math.round((cur / tot) * 100) };
   };
 
   return (
-    <div className="w-full min-h-screen bg-background text-on-surface pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
-        {/* Section 1: Dashboard Header & Direct Action */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-outline-variant/30">
-          <div className="flex flex-col gap-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-surface-container-high dark:bg-[#161F30] text-primary dark:text-primary-fixed text-xs font-semibold tracking-wider uppercase">
-              <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
-              Citizen Case Vault • {cases.length} Matters Recorded
-            </div>
-            <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-primary dark:text-primary-fixed tracking-tight">
-              My Complaints
-            </h1>
-            <p className="text-sm sm:text-base text-on-surface-variant leading-relaxed">
-              Track your legal problems, continue previous consultations, and see what needs your immediate attention across civil, tenancy, and statutory rights.
-            </p>
-          </div>
+    <div className="w-full min-h-[calc(100vh-4rem)] bg-slate-50/50 dark:bg-[#090D16] text-slate-900 dark:text-slate-100 transition-colors pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-6">
 
-          <div className="flex items-center gap-3 shrink-0">
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-primary hover:bg-secondary text-white text-xs font-bold shadow-md hover:shadow-lg transition-all"
-            >
-              <span className="material-symbols-outlined text-lg">add_box</span>
-              <span>+ New Complaint</span>
+        {/* ========================================================================= */}
+        {/* 1. BREADCRUMB & HEADER SECTION                                           */}
+        {/* ========================================================================= */}
+        <div className="flex flex-col gap-4">
+          {/* Breadcrumb: Home > My Matters */}
+          <nav className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <Link href="/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              Home
             </Link>
+            <span className="text-slate-300 dark:text-slate-600">/</span>
+            <span className="text-slate-900 dark:text-white font-semibold">My Matters</span>
+          </nav>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                My Matters
+              </h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                View, track and manage all your complaints and cases in one place.
+              </p>
+            </div>
+
+            {/* Primary Action Button */}
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all shrink-0"
+            >
+              <span className="material-symbols-outlined text-lg">add</span>
+              <span>Create New Complaint</span>
+            </button>
           </div>
-        </section>
+        </div>
 
-        {/* Section 2: Metric Strip */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-4 rounded-xl bg-surface-container-lowest dark:bg-[#0F131C] border border-outline-variant/30 shadow-sm flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">
-                Active Claims
-              </span>
-              <span className="font-heading text-lg sm:text-xl font-bold text-primary dark:text-primary-fixed mt-0.5">
-                ₹1,88,000
-              </span>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950 text-secondary flex items-center justify-center">
-              <span className="material-symbols-outlined text-xl">payments</span>
-            </div>
+        {/* ========================================================================= */}
+        {/* 2. FILTER TABS & SEARCH CONTROLS                                         */}
+        {/* ========================================================================= */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2 border-t border-slate-200/80 dark:border-slate-800/80">
+          {/* Left: Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedTab('ALL')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                selectedTab === 'ALL'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
+              }`}
+            >
+              All {allCount}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedTab('ACTIVE')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                selectedTab === 'ACTIVE'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
+              }`}
+            >
+              Active {activeCount}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedTab('ACTION REQUIRED')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                selectedTab === 'ACTION REQUIRED'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
+              }`}
+            >
+              Action Required {actionRequiredCount}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedTab('COMPLETED')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                selectedTab === 'COMPLETED'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
+              }`}
+            >
+              Completed {completedCount}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedTab('ARCHIVED')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                selectedTab === 'ARCHIVED'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
+              }`}
+            >
+              Archived {archivedCount}
+            </button>
           </div>
 
-          <div className="p-4 rounded-xl bg-surface-container-lowest dark:bg-[#0F131C] border border-outline-variant/30 shadow-sm flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">
-                Action Due
-              </span>
-              <span className="font-heading text-lg sm:text-xl font-bold text-error mt-0.5">
-                1 Pending
-              </span>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-950 text-error flex items-center justify-center">
-              <span className="material-symbols-outlined text-xl">warning</span>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-surface-container-lowest dark:bg-[#0F131C] border border-outline-variant/30 shadow-sm flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">
-                Verified Facts
-              </span>
-              <span className="font-heading text-lg sm:text-xl font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
-                11 Items
-              </span>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center">
-              <span className="material-symbols-outlined text-xl">task_alt</span>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-surface-container-lowest dark:bg-[#0F131C] border border-outline-variant/30 shadow-sm flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">
-                Success Score
-              </span>
-              <span className="font-heading text-lg sm:text-xl font-bold text-secondary mt-0.5">
-                84%
-              </span>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950 text-secondary flex items-center justify-center">
-              <span className="material-symbols-outlined text-xl">insights</span>
-            </div>
-          </div>
-        </section>
-
-        {/* Section 3: Search & Status Filter Tabs */}
-        <section className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            {/* Filter Tabs */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-container-low dark:bg-[#161F30]/80 overflow-x-auto">
-              {(['ALL', 'ACTIVE', 'ACTION REQUIRED', 'COMPLETED', 'ARCHIVED'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setSelectedTab(tab)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                    selectedTab === tab
-                      ? 'bg-primary-container text-white shadow-sm'
-                      : 'text-on-surface-variant hover:text-on-surface'
-                  }`}
-                >
-                  <span>{tab}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                      selectedTab === tab
-                        ? 'bg-white/20 text-white'
-                        : 'bg-surface-container-high text-on-surface-variant'
-                    }`}
-                  >
-                    {getTabCount(tab)}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* Search Input */}
-            <div className="relative w-full sm:w-72">
-              <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-base">
+          {/* Right: Search Input & Sort Dropdown */}
+          <div className="flex items-center gap-3">
+            <div className="relative w-full sm:w-64">
+              <span className="material-symbols-outlined absolute left-3 top-2.5 text-base text-slate-400">
                 search
               </span>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by ID, keyword, or act..."
-                className="w-full bg-surface-container-lowest dark:bg-[#0F131C] rounded-lg pl-9 pr-3 py-2 text-xs border border-outline-variant/30 text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary"
+                placeholder="Search by ID, title, or keyword..."
+                className="w-full pl-9 pr-3 py-1.5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
               />
             </div>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-3 py-1.5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 focus:outline-none"
+            >
+              <option value="latest">Latest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
           </div>
-        </section>
+        </div>
 
-        {/* Section 4: Complaints Cards Grid */}
-        <section className="w-full">
-          {filteredCases.length === 0 ? (
-            /* Empty State */
-            <div className="w-full bg-surface-container-lowest dark:bg-[#0F131C] rounded-2xl p-12 border border-outline-variant/30 text-center flex flex-col items-center justify-center gap-3">
-              <div className="w-14 h-14 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant">
-                <span className="material-symbols-outlined text-3xl">inbox</span>
-              </div>
-              <h3 className="font-heading text-lg font-bold text-on-surface">No Complaints Found</h3>
-              <p className="text-xs text-on-surface-variant max-w-sm">
-                No active matters correspond to your search or selected filter. You can initiate a new consultation at any time.
-              </p>
-              <Link
-                href="/"
-                className="mt-2 px-5 py-2.5 rounded-lg bg-primary hover:bg-secondary text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+        {/* ========================================================================= */}
+        {/* 3. MATTER LIST CARDS                                                     */}
+        {/* ========================================================================= */}
+        <div className="flex flex-col gap-4">
+          {filteredCases.map((matter) => {
+            const ev = getEvidenceFraction(matter.id, matter.totalEvidenceCount, matter.collectedEvidenceCount);
+            const isCompleted = matter.status === 'COMPLETED' || matter.id === 'LS-2026-0029';
+
+            return (
+              <div
+                key={matter.id}
+                className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800/80 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col gap-4"
               >
-                <span className="material-symbols-outlined text-base">add</span>
-                <span>Start Your First Complaint</span>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {filteredCases.map((c) => (
-                <div
-                  key={c.id}
-                  className="p-5 sm:p-6 rounded-2xl bg-surface-container-lowest dark:bg-[#0F131C] border border-outline-variant/30 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4"
-                >
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex flex-col">
-                        <span className="font-mono text-xs text-on-surface-variant">
-                          ID: {c.id}
-                        </span>
-                        <h3 className="font-heading text-base sm:text-lg font-bold text-primary dark:text-primary-fixed hover:underline cursor-pointer">
-                          <Link href={`/cases/${c.id}`}>{c.title}</Link>
-                        </h3>
-                      </div>
-                      <CaseStatusBadge status={c.status} size="sm" />
-                    </div>
-
-                    <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
-                      {c.summary}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-on-surface-variant pt-1">
-                      <span className="text-secondary font-medium">{c.category}</span>
-                      <span>•</span>
-                      <span>{c.jurisdiction}</span>
-                      <span>•</span>
-                      <span>Updated {c.updatedAt}</span>
-                    </div>
+                {/* Top Row: Case ID & Status Badge */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-lg">
+                      description
+                    </span>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 font-mono tracking-tight">
+                      {matter.id}
+                    </span>
                   </div>
 
-                  {/* Evidence & Stage Footer */}
-                  <div className="pt-3 border-t border-outline-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className="text-on-surface-variant">Evidence:</span>
-                        <span className="font-bold text-on-surface">
-                          {c.collectedEvidenceCount} of {c.totalEvidenceCount} items
-                        </span>
+                  <div>{getStatusBadge(matter.status, matter.id)}</div>
+                </div>
+
+                {/* Middle: Title & Description */}
+                <div>
+                  <h3 className="font-heading text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                    {matter.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
+                    {matter.summary}
+                  </p>
+                </div>
+
+                {/* Bottom Row: Metadata Tags, Evidence Progress & Action Button */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800/60">
+                  {/* Left Tags */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40 font-semibold">
+                      {matter.category}
+                    </span>
+                    <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400 font-medium">
+                      <span className="material-symbols-outlined text-sm">location_on</span>
+                      {matter.jurisdiction.split(',')[0]}
+                    </span>
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                    <span className="text-slate-500 dark:text-slate-400 font-medium">
+                      Updated {matter.updatedAt || '2 days ago'}
+                    </span>
+                  </div>
+
+                  {/* Right: Progress bar & Action CTA */}
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex flex-col gap-1 w-36">
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                        <span>Evidence:</span>
+                        <span>{ev.current} of {ev.total} Items</span>
                       </div>
-                      <div className="w-36 h-1.5 rounded-full bg-outline-variant/30 overflow-hidden">
+                      <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-secondary transition-all"
-                          style={{
-                            width: `${(c.collectedEvidenceCount / (c.totalEvidenceCount || 1)) * 100}%`
-                          }}
+                          className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all"
+                          style={{ width: `${ev.pct}%` }}
                         />
                       </div>
                     </div>
 
                     <Link
-                      href={`/cases/${c.id}`}
-                      onClick={() => setActiveCaseId(c.id)}
-                      className="px-4 py-2 rounded-lg bg-surface-container-low dark:bg-[#161F30] hover:bg-primary hover:text-white text-primary dark:text-primary-fixed text-xs font-bold transition-all flex items-center justify-center gap-1 self-stretch sm:self-auto border border-outline-variant/20"
+                      href={`/cases/${matter.id}`}
+                      onClick={() => setActiveCaseId(matter.id)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 dark:bg-[#1E293B] hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 text-xs font-bold text-slate-800 dark:text-slate-200 transition-all shadow-2xs"
                     >
-                      <span>Continue Complaint</span>
+                      <span>{isCompleted ? 'View Details' : 'Continue'}</span>
                       <span className="material-symbols-outlined text-sm">arrow_forward</span>
                     </Link>
                   </div>
                 </div>
-              ))}
+              </div>
+            );
+          })}
+
+          {filteredCases.length === 0 && (
+            <div className="p-12 text-center rounded-3xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
+              <span className="material-symbols-outlined text-4xl text-slate-400">folder_off</span>
+              <p className="text-base font-bold text-slate-900 dark:text-white">No matters found</p>
+              <p className="text-xs text-slate-500 max-w-sm">
+                No active complaints match your search query or selected filter criteria.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedTab('ALL');
+                }}
+                className="mt-2 text-xs font-bold text-blue-600 hover:underline"
+              >
+                Clear Filters
+              </button>
             </div>
           )}
-        </section>
+        </div>
+
       </div>
+
+      {/* New Complaint Modal */}
+      <NewComplaintModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

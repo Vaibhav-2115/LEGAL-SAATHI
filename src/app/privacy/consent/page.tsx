@@ -25,7 +25,7 @@ export default function ConsentAndPrivacyPage() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>
-              Phase 3 • <strong className="text-on-surface">Consent & Privacy Governance</strong>
+              <strong className="text-on-surface">Consent & Privacy Governance</strong>
             </span>
           </div>
         </div>

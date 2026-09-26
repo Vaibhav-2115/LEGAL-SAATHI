@@ -1,14 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useLegalSaathi } from '../../../context/LegalSaathiContext';
 import { CaseContextBanner } from '../../../components/CaseContextBanner';
 import { RTIStepper } from '../../../components/RTIStepper';
 
-export default function RTIAssistantPage() {
-  const { activeCase } = useLegalSaathi();
-  const currentCase = activeCase;
+function RTIAssistantContent() {
+  const searchParams = useSearchParams();
+  const caseIdFromQuery = searchParams.get('caseId');
+  const { cases, activeCase, activeCaseId, setActiveCaseId } = useLegalSaathi();
+  const currentCase = (caseIdFromQuery ? cases.find((c) => c.id === caseIdFromQuery) : activeCase) || cases[0];
+
+  // Synchronize activeCaseId when specified in query param
+  useEffect(() => {
+    if (caseIdFromQuery && currentCase && currentCase.id !== activeCaseId) {
+      setActiveCaseId(currentCase.id);
+    }
+  }, [caseIdFromQuery, currentCase, activeCaseId, setActiveCaseId]);
 
   if (!currentCase) {
     return (
@@ -26,7 +36,7 @@ export default function RTIAssistantPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-on-surface-variant">
           <div className="flex items-center gap-2">
             <Link
-              href="/"
+              href="/dashboard"
               className="text-primary dark:text-primary-fixed hover:text-secondary font-semibold transition-colors"
             >
               Dashboard
@@ -62,5 +72,22 @@ export default function RTIAssistantPage() {
         <RTIStepper currentCase={currentCase} />
       </div>
     </div>
+  );
+}
+
+export default function RTIAssistantPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full min-h-screen flex items-center justify-center p-8 text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
+            <span>Loading RTI Drafter...</span>
+          </div>
+        </div>
+      }
+    >
+      <RTIAssistantContent />
+    </Suspense>
   );
 }

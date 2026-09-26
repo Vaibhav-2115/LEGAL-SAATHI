@@ -1,16 +1,26 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useLegalSaathi } from '../../context/LegalSaathiContext';
 import { CaseStatusBadge } from '../../components/CaseStatusBadge';
 import { VoiceState } from '../../lib/types';
 
-export default function ChatPage() {
+function ChatContent() {
   const { activeCase, chatMessages, addChatMessage, isAnalyzing } = useLegalSaathi();
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get('q');
+
   const [inputText, setInputText] = useState('');
   const [voiceState, setVoiceState] = useState<VoiceState>('IDLE');
   const [attachedFile, setAttachedFile] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialQuery && !inputText) {
+      setInputText(initialQuery);
+    }
+  }, [initialQuery]);
 
   const handleSend = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -511,5 +521,13 @@ export default function ChatPage() {
         </aside>
       </div>
     </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-slate-500">Loading Legal Assistant...</div>}>
+      <ChatContent />
+    </Suspense>
   );
 }
