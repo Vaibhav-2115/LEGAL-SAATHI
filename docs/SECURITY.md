@@ -66,13 +66,14 @@ Legal Saathi is an evidence-grounded legal assistant for Indian citizens. Becaus
 
 ---
 
-## 4. Database Security & Logical RLS
-- **Zero SQL Injection:** All database queries utilize parameterized SQL statements (`?` placeholders) via SQLite's native C API. No string concatenation or interpolation is used.
-- **Logical Row-Level Security (RLS):**
-  - `save_case()` validates ownership before executing `INSERT OR REPLACE` to prevent overwriting another user's case record.
-  - `delete_case()` requires both `case_id` and `session_id` in the `DELETE` clause.
-  - `list_cases()` scopes queries strictly to `WHERE session_id = ?`.
-- **Append-Only Audit Trail:** Critical operations are logged to the `audit_events` table with actor, action, timestamp, and target metadata.
+## 4. Database Security & Supabase Row-Level Security (RLS)
+- **Parameterized SQL & Connection Pooling:** All database interactions utilize parameterized SQL queries executed over encrypted SSL connections to Supabase PostgreSQL poolers (`aws-0-ap-southeast-2.pooler.supabase.com:5432`). Zero string concatenation is permitted.
+- **Production Row-Level Security (RLS) Policies:**
+  - `profiles`: Strictly scoped to `auth.uid() = id`.
+  - `cases`: Enforces ownership via `auth.uid() = user_id` for authenticated users, and matches anonymous `x-session-id` headers for unauthenticated dockets.
+  - `evidence` & `legal_drafts`: Access is strictly bounded by foreign key ownership to the parent case docket.
+  - `legal_sources`: Open read-only access ensuring universal statutory transparency without mutation permissions.
+- **Append-Only Audit Trail:** Critical operations are logged to the audit ledger with actor identity, timestamp, IP hash, and event metadata.
 
 ---
 

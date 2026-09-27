@@ -9,7 +9,7 @@
 
 > An evidence-grounded, multilingual, voice-capable legal assistance platform designed for Indian citizens. Features automated statutory issue classification across 15 legal domains, strict case-specific AI context isolation, hybrid RAG retrieval from verified Indian statutes, and collective action clustering (Ekjut Engine).
 >
-> 📖 **Comprehensive Project Master Documentation:** See [`docs/LEGAL_SAATHI_MASTER_DOCUMENTATION.md`](docs/LEGAL_SAATHI_MASTER_DOCUMENTATION.md) for full system architecture, database schemas, 31-phase completion matrices, and operational runbooks.
+> 📖 **Comprehensive Project Documentation Index:** See [`docs/README.md`](docs/README.md) for the complete index covering the [Architecture Blueprint](docs/ARCHITECTURE_BLUEPRINT.md), [Master Specifications](docs/MASTER_PROJECT_SPECIFICATIONS.md), [Backend Architecture](docs/BACKEND_ARCHITECTURE.md), [Phase Completion Matrix](docs/PHASE_COMPLETION_MATRIX.md), [Master Status Report](docs/MASTER_PROJECT_STATUS_REPORT.md), and [Security Guidelines](docs/SECURITY.md).
 
 ---
 
