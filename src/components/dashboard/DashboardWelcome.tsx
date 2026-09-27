@@ -11,7 +11,7 @@ interface DashboardWelcomeProps {
 
 export const DashboardWelcome: React.FC<DashboardWelcomeProps> = ({ onOpenNewComplaint }) => {
   const { user } = useAuth();
-  const { activeCase, cases } = useLegalSaathi();
+  const { activeCase, cases, t } = useLegalSaathi();
 
   const userName = user?.name ? user.name.split(' ')[0] : 'Citizen';
   const activeCasesCount = cases.filter(
@@ -54,7 +54,7 @@ export const DashboardWelcome: React.FC<DashboardWelcomeProps> = ({ onOpenNewCom
             className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm hover:shadow transition-all"
           >
             <span className="material-symbols-outlined text-base">add_box</span>
-            <span>+ New Complaint Docket</span>
+            <span>+ {t.btnCreateCase}</span>
           </button>
 
           <Link
@@ -62,7 +62,7 @@ export const DashboardWelcome: React.FC<DashboardWelcomeProps> = ({ onOpenNewCom
             className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-surface-container-low dark:bg-[#161F30] hover:bg-surface-container-high border border-outline-variant/40 dark:border-[#334155] text-on-surface text-xs font-bold transition-all"
           >
             <span className="material-symbols-outlined text-base text-blue-600 dark:text-blue-400">forum</span>
-            <span>Consult Assistant</span>
+            <span>{t.chatAssistantTitle}</span>
           </Link>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { LegalCase } from '../lib/types';
+import { useLegalSaathi } from '../context/LegalSaathiContext';
 
 interface EvidenceOverviewProps {
   currentCase: LegalCase;
@@ -16,6 +17,7 @@ export const EvidenceOverview: React.FC<EvidenceOverviewProps> = ({
   setFilterStatus,
   onAddNewClick
 }) => {
+  const { t } = useLegalSaathi();
   const total = currentCase.evidenceList.length;
   const collected = currentCase.evidenceList.filter(
     (e) => e.status === 'VERIFIED' || e.status === 'COLLECTED'
@@ -39,7 +41,7 @@ export const EvidenceOverview: React.FC<EvidenceOverviewProps> = ({
             <span>{currentCase.category}</span>
           </div>
           <h2 className="font-heading text-xl sm:text-2xl font-extrabold text-primary dark:text-primary-fixed tracking-tight">
-            Case Evidence Dossier
+            {t.tabEvidence}
           </h2>
           <p className="text-xs text-on-surface-variant mt-1 leading-relaxed max-w-2xl">
             A solid legal claim under Indian civil law relies on verifiable documentary proof.
@@ -54,7 +56,7 @@ export const EvidenceOverview: React.FC<EvidenceOverviewProps> = ({
             type="button"
           >
             <span className="material-symbols-outlined text-base">upload_file</span>
-            <span>Upload New Evidence</span>
+            <span>{t.uploadEvidence}</span>
           </button>
         )}
       </div>
@@ -63,7 +65,7 @@ export const EvidenceOverview: React.FC<EvidenceOverviewProps> = ({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
         <div className="bg-surface-container-low dark:bg-[#161F30]/80 rounded-xl p-3.5 border border-outline-variant/30 flex flex-col">
           <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
-            Total Identified
+            {t.totalIdentified}
           </span>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl font-black text-on-surface font-mono">{total}</span>
@@ -74,7 +76,7 @@ export const EvidenceOverview: React.FC<EvidenceOverviewProps> = ({
         <div className="bg-emerald-50 dark:bg-emerald-950/40 rounded-xl p-3.5 border border-emerald-200 dark:border-emerald-800/60 flex flex-col">
           <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1">
             <span className="material-symbols-outlined text-xs">verified</span>
-            Collected & Verified
+            {t.collectedVerified}
           </span>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl font-black text-emerald-900 dark:text-emerald-200 font-mono">
@@ -87,7 +89,7 @@ export const EvidenceOverview: React.FC<EvidenceOverviewProps> = ({
         <div className="bg-amber-50 dark:bg-amber-950/40 rounded-xl p-3.5 border border-amber-200 dark:border-amber-800/60 flex flex-col">
           <span className="text-[11px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider flex items-center gap-1">
             <span className="material-symbols-outlined text-xs">pending</span>
-            Needs Review
+            {t.statusNeedsReview}
           </span>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl font-black text-amber-900 dark:text-amber-200 font-mono">
@@ -100,7 +102,7 @@ export const EvidenceOverview: React.FC<EvidenceOverviewProps> = ({
         <div className="bg-red-50 dark:bg-red-950/40 rounded-xl p-3.5 border border-red-200 dark:border-red-800/60 flex flex-col">
           <span className="text-[11px] font-bold text-red-800 dark:text-red-300 uppercase tracking-wider flex items-center gap-1">
             <span className="material-symbols-outlined text-xs">priority_high</span>
-            Missing
+            {t.statusMissing}
           </span>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl font-black text-red-900 dark:text-red-200 font-mono">
@@ -113,12 +115,12 @@ export const EvidenceOverview: React.FC<EvidenceOverviewProps> = ({
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-outline-variant/30">
-        <span className="text-xs font-bold text-on-surface-variant mr-1">Filter Dossier:</span>
+        <span className="text-xs font-bold text-on-surface-variant mr-1">{t.filterDossier}:</span>
         {[
-          { id: 'ALL', label: `All Items (${total})` },
-          { id: 'COLLECTED', label: `Collected (${collected})` },
-          { id: 'NEEDS_REVIEW', label: `Needs Review (${reviewNeeded})` },
-          { id: 'MISSING', label: `Missing (${missing})` },
+          { id: 'ALL', label: `${t.statusAll} (${total})` },
+          { id: 'COLLECTED', label: `${t.collectedVerified} (${collected})` },
+          { id: 'NEEDS_REVIEW', label: `${t.statusNeedsReview} (${reviewNeeded})` },
+          { id: 'MISSING', label: `${t.statusMissing} (${missing})` },
           { id: 'NOT_APPLICABLE', label: `N/A (${notApplicable})` }
         ].map((btn) => (
           <button

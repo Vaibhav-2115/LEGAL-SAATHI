@@ -96,7 +96,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#1E293B]/60'
             }`}
           >
-            Home
+            {t.navHome}
           </Link>
 
           {/* 2. My Matters */}
@@ -108,7 +108,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#1E293B]/60'
             }`}
           >
-            My Matters
+            {t.navMyMatters}
           </Link>
 
           {/* 3. Legal Assistant */}
@@ -120,7 +120,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#1E293B]/60'
             }`}
           >
-            Legal Assistant
+            {t.navLegalAssistant}
           </Link>
 
           {/* 4. Case Workspace */}
@@ -132,7 +132,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#1E293B]/60'
             }`}
           >
-            Case Workspace
+            {t.navCaseWorkspace}
           </Link>
         </nav>
 
@@ -149,7 +149,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
             </span>
             <div className="flex flex-col text-left leading-none">
               <span className="text-[9px] font-medium text-emerald-700 dark:text-emerald-400">
-                Free Legal Aid
+                {t.freeLegalAid}
               </span>
               <span className="text-[11px] font-bold font-mono tracking-tight text-emerald-900 dark:text-emerald-200">
                 NALSA 15100
@@ -232,7 +232,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
             {notificationsOpen && (
               <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-[#0F1422] rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-3 z-50 animate-in fade-in zoom-in-95 duration-100">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 text-xs font-bold text-slate-900 dark:text-white">
-                  <span>Notifications</span>
+                  <span>{t.notifications}</span>
                   <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300">
                     1 Pending
                   </span>
@@ -317,7 +317,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
                     <span className="material-symbols-outlined text-base text-slate-400">
                       folder_open
                     </span>
-                    <span>My Matters</span>
+                    <span>{t.navMyMatters}</span>
                   </Link>
 
                   <Link
@@ -329,7 +329,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
                     <span className="material-symbols-outlined text-base text-slate-400">
                       gavel
                     </span>
-                    <span>Case Workspace</span>
+                    <span>{t.navCaseWorkspace}</span>
                   </Link>
 
                   <Link
@@ -357,7 +357,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
                   role="menuitem"
                 >
                   <span className="material-symbols-outlined text-base">logout</span>
-                  <span>Sign Out of Portal</span>
+                  <span>{t.signOut}</span>
                 </button>
               </div>
             )}
@@ -379,7 +379,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
               }`}
             >
               <span className="material-symbols-outlined text-lg">dashboard</span>
-              <span>{t.navDashboard}</span>
+              <span>{t.navHome}</span>
             </Link>
 
             <Link
@@ -392,7 +392,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
               }`}
             >
               <span className="material-symbols-outlined text-lg">folder_open</span>
-              <span>{t.navComplaints}</span>
+              <span>{t.navMyMatters}</span>
             </Link>
 
             <Link
@@ -405,7 +405,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
               }`}
             >
               <span className="material-symbols-outlined text-lg">forum</span>
-              <span>{t.navChat}</span>
+              <span>{t.navLegalAssistant}</span>
             </Link>
 
             <Link
@@ -418,7 +418,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
               }`}
             >
               <span className="material-symbols-outlined text-lg">gavel</span>
-              <span>Case Workspace</span>
+              <span>{t.navCaseWorkspace}</span>
             </Link>
 
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
@@ -434,7 +434,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onToggleMobileMenu }) => {
                 }}
                 className="text-rose-600 font-semibold"
               >
-                Sign Out
+                {t.signOut}
               </button>
             </div>
           </div>

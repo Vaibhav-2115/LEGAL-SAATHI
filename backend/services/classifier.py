@@ -12,6 +12,7 @@ from backend.schemas.classify import ClassifyResponse
 
 # Comprehensive 15 Legal Domains Taxonomy
 DOMAIN_DISPLAY_NAMES = {
+    "greeting": "General Legal Assistance & Citizen Intake",
     "property_rera": "Property & Housing - Builder Delay & Real Estate",
     "tenancy": "Property & Housing - Landlord & Tenant",
     "banking_finance": "Financial & Banking Disputes",
@@ -209,6 +210,12 @@ APPLICABLE_ACTS_MAP: Dict[str, List[str]] = {
 }
 
 
+GREETING_REGEX = re.compile(
+    r"^(hello|hi|hey|namaste|pranam|good\s+(morning|afternoon|evening)|who\s+are\s+you|what\s+can\s+you\s+do|how\s+can\s+you\s+help|help\s+me|what\s+is\s+legal\s+saathi)[\s?!.,]*$",
+    re.IGNORECASE
+)
+
+
 class IssueClassifier:
     """
     Production-grade rule-based and heuristic classifier spanning 15 Indian legal domains.
@@ -216,7 +223,24 @@ class IssueClassifier:
     """
 
     def classify(self, text: str, lang: str = "en") -> ClassifyResponse:
-        lower_text = text.lower()
+        lower_text = text.lower().strip()
+
+        # 0. Conversational Greeting & Capability Check
+        if GREETING_REGEX.match(lower_text):
+            return ClassifyResponse(
+                issue_type="greeting",
+                domain="General Legal Assistance & Citizen Intake",
+                secondary_issues=["legal_literacy"],
+                urgency="low",
+                is_emergency=False,
+                confidence=0.99,
+                explanation="Conversational greeting or platform capability question detected.",
+                applicable_acts=[
+                    "Constitution of India (Article 39A - Legal Literacy & Equal Justice)",
+                    "Legal Services Authorities Act, 1987"
+                ],
+                emergency_helpline=None
+            )
 
         # 1. Immediate Emergency Check
         for pattern, explanation, helpline in EMERGENCY_PATTERNS:

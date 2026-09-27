@@ -108,3 +108,18 @@ class ChecklistResponse(BaseModel):
     essential_documents: List[Dict[str, str]]
     recommended_evidence: List[Dict[str, str]]
     verification_tips: List[str]
+
+
+class EditDraftRequest(BaseModel):
+    draft_text: str = Field(..., min_length=10, max_length=20000, description="Current legal draft text")
+    instruction: str = Field(..., min_length=3, max_length=1000, description="Natural language editing instruction")
+    case_id: Optional[str] = Field(None, max_length=64)
+    section_name: Optional[str] = Field(None, max_length=100)
+    lang: str = Field(default="en", max_length=10)
+
+
+class EditDraftResponse(BaseModel):
+    revised_text: str
+    explanation_of_changes: str
+    diff_summary: List[str] = Field(default_factory=list)
+

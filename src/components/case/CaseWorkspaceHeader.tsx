@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { LegalCase } from '@/lib/types';
+import { useLegalSaathi } from '@/context/LegalSaathiContext';
 
 interface CaseWorkspaceHeaderProps {
   currentCase: LegalCase;
@@ -21,27 +22,28 @@ export const CaseWorkspaceHeader: React.FC<CaseWorkspaceHeaderProps> = ({
   assistantOpen,
   onToggleAssistant,
 }) => {
+  const { t } = useLegalSaathi();
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
   const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
 
   // 6 Primary uncluttered horizontal tabs (no text clipping)
   const primaryTabs = [
-    { id: 'overview', label: 'Overview', icon: 'dashboard' },
-    { id: 'evidence', label: 'Evidence & Documents', icon: 'inventory_2' },
-    { id: 'timeline', label: 'Case Timeline', icon: 'schedule' },
-    { id: 'explanation', label: 'Why Law Applies', icon: 'balance' },
-    { id: 'missing-info', label: 'Missing Info', icon: 'help_outline', badge: '1 Gap' },
-    { id: 'actions', label: 'Legal Actions', icon: 'bolt' },
+    { id: 'overview', label: t.tabOverview, icon: 'dashboard' },
+    { id: 'evidence', label: t.tabEvidence, icon: 'inventory_2' },
+    { id: 'timeline', label: t.tabTimeline, icon: 'schedule' },
+    { id: 'explanation', label: t.tabWhyLawApplies, icon: 'balance' },
+    { id: 'missing-info', label: t.tabMissingInfo, icon: 'help_outline', badge: '1 Gap' },
+    { id: 'actions', label: t.tabActions, icon: 'bolt' },
   ];
 
   // Secondary tabs accessed via streamlined More menu
   const secondaryTabs = [
-    { id: 'verification', label: 'Case Verification', icon: 'fact_check' },
-    { id: 'sources', label: 'Legal Sources', icon: 'menu_book' },
-    { id: 'compare', label: 'Compare Sources', icon: 'compare_arrows' },
-    { id: 'collective', label: 'Collective Assistance', icon: 'groups' },
-    { id: 'export', label: 'Export Dossier', icon: 'file_download' },
+    { id: 'verification', label: t.tabVerification, icon: 'fact_check' },
+    { id: 'sources', label: t.tabSources, icon: 'menu_book' },
+    { id: 'compare', label: t.tabCompare, icon: 'compare_arrows' },
+    { id: 'collective', label: t.tabCollective, icon: 'groups' },
+    { id: 'export', label: t.tabExport, icon: 'file_download' },
   ];
 
   const activeSecondaryTab = secondaryTabs.find((t) => t.id === activeTab);
@@ -67,7 +69,7 @@ export const CaseWorkspaceHeader: React.FC<CaseWorkspaceHeaderProps> = ({
               className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors shrink-0"
             >
               <span className="material-symbols-outlined text-sm">arrow_back</span>
-              <span>My Matters</span>
+              <span>{t.navMyMatters}</span>
             </Link>
             <span className="text-slate-300 dark:text-slate-600">/</span>
             <span className="font-mono font-bold text-slate-900 dark:text-white truncate">
@@ -104,7 +106,7 @@ export const CaseWorkspaceHeader: React.FC<CaseWorkspaceHeaderProps> = ({
                 title={assistantOpen ? 'Hide Assistant Panel' : 'Open Assistant Panel'}
               >
                 <span className="material-symbols-outlined text-sm">smart_toy</span>
-                <span className="hidden sm:inline">Legal Assistant</span>
+                <span className="hidden sm:inline">{t.navLegalAssistant}</span>
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
                     assistantOpen ? 'bg-emerald-500' : 'bg-slate-400'
@@ -132,7 +134,7 @@ export const CaseWorkspaceHeader: React.FC<CaseWorkspaceHeaderProps> = ({
                 </h1>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/90 dark:border-amber-800 text-[10px] font-bold tracking-wider uppercase shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  {currentCase.status === 'ACTION REQUIRED' ? 'Action Required' : currentCase.status}
+                  {currentCase.status === 'ACTION REQUIRED' ? t.statusActionRequired : currentCase.status}
                 </span>
               </div>
 
@@ -211,7 +213,7 @@ export const CaseWorkspaceHeader: React.FC<CaseWorkspaceHeaderProps> = ({
                       className="w-full text-left px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2"
                     >
                       <span className="material-symbols-outlined text-sm">edit_note</span>
-                      <span>Prepare Notice</span>
+                      <span>{t.tabActions}</span>
                     </button>
                     <button
                       type="button"
@@ -222,14 +224,14 @@ export const CaseWorkspaceHeader: React.FC<CaseWorkspaceHeaderProps> = ({
                       className="w-full text-left px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2"
                     >
                       <span className="material-symbols-outlined text-sm">print</span>
-                      <span>Print Summary</span>
+                      <span>{t.btnPrintExport}</span>
                     </button>
                     <Link
                       href="/complaints"
                       className="w-full text-left px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2"
                     >
                       <span className="material-symbols-outlined text-sm">arrow_back</span>
-                      <span>My Complaints List</span>
+                      <span>{t.navMyMatters}</span>
                     </Link>
                   </div>
                 )}
@@ -241,7 +243,7 @@ export const CaseWorkspaceHeader: React.FC<CaseWorkspaceHeaderProps> = ({
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs shrink-0"
               >
                 <span className="material-symbols-outlined text-sm">file_download</span>
-                <span>Export Dossier</span>
+                <span>{t.tabExport}</span>
               </button>
             </div>
           </div>
@@ -287,7 +289,7 @@ export const CaseWorkspaceHeader: React.FC<CaseWorkspaceHeaderProps> = ({
                     : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <span>{activeSecondaryTab ? activeSecondaryTab.label : 'More'}</span>
+                <span>{activeSecondaryTab ? activeSecondaryTab.label : t.filterMore}</span>
                 <span className="material-symbols-outlined text-sm">expand_more</span>
               </button>
 

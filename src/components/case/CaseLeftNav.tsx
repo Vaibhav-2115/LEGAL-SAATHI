@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useLegalSaathi } from '@/context/LegalSaathiContext';
 
 interface CaseLeftNavProps {
   activeTab: string;
@@ -13,24 +14,26 @@ export const CaseLeftNav: React.FC<CaseLeftNavProps> = ({
   onSelectTab,
   onOpenAssistant,
 }) => {
+  const { t } = useLegalSaathi();
+
   const dossierItems = [
-    { id: 'overview', label: 'Overview', icon: 'dashboard' },
-    { id: 'evidence', label: 'Evidence & Documents', icon: 'inventory_2' },
-    { id: 'timeline', label: 'Case Timeline', icon: 'schedule' },
-    { id: 'missing-info', label: 'Missing Information', icon: 'help_outline', badge: 1 },
+    { id: 'overview', label: t.tabOverview, icon: 'dashboard' },
+    { id: 'evidence', label: t.tabEvidence, icon: 'inventory_2' },
+    { id: 'timeline', label: t.tabTimeline, icon: 'schedule' },
+    { id: 'missing-info', label: t.tabMissingInfo, icon: 'help_outline', badge: 1 },
   ];
 
   const legalItems = [
-    { id: 'explanation', label: 'Why Law Applies', icon: 'balance' },
-    { id: 'verification', label: 'Case Verification', icon: 'fact_check' },
-    { id: 'sources', label: 'Legal Sources', icon: 'menu_book' },
-    { id: 'compare', label: 'Compare Sources', icon: 'compare_arrows' },
+    { id: 'explanation', label: t.tabWhyLawApplies, icon: 'balance' },
+    { id: 'verification', label: t.tabVerification, icon: 'fact_check' },
+    { id: 'sources', label: t.tabSources, icon: 'menu_book' },
+    { id: 'compare', label: t.tabCompare, icon: 'compare_arrows' },
   ];
 
   const actionItems = [
-    { id: 'actions', label: 'Legal Actions', icon: 'bolt' },
-    { id: 'collective', label: 'Collective Assistance', icon: 'groups' },
-    { id: 'export', label: 'Export Dossier', icon: 'file_download' },
+    { id: 'actions', label: t.tabActions, icon: 'bolt' },
+    { id: 'collective', label: t.tabCollective, icon: 'groups' },
+    { id: 'export', label: t.tabExport, icon: 'file_download' },
   ];
 
   return (
@@ -40,7 +43,7 @@ export const CaseLeftNav: React.FC<CaseLeftNavProps> = ({
         {/* Group 1: Case Dossier */}
         <div className="flex flex-col gap-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-0.5">
-            Case Dossier
+            {t.groupDossier}
           </span>
           {dossierItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -78,7 +81,7 @@ export const CaseLeftNav: React.FC<CaseLeftNavProps> = ({
         {/* Group 2: Legal Grounding */}
         <div className="flex flex-col gap-1 pt-2 border-t border-slate-100 dark:border-slate-800/80">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-0.5">
-            Legal Grounding
+            {t.groupLegal}
           </span>
           {legalItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -107,7 +110,7 @@ export const CaseLeftNav: React.FC<CaseLeftNavProps> = ({
         {/* Group 3: Remedies & Actions */}
         <div className="flex flex-col gap-1 pt-2 border-t border-slate-100 dark:border-slate-800/80">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-0.5">
-            Remedies &amp; Actions
+            {t.groupActions}
           </span>
           {actionItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -138,9 +141,9 @@ export const CaseLeftNav: React.FC<CaseLeftNavProps> = ({
       <div className="p-3.5 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/50 shadow-2xs flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-xs font-bold text-slate-900 dark:text-white">Need Guidance?</h4>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white">{t.needGuidance}</h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
-              Ask about applicable laws or next steps.
+              {t.needGuidanceDesc}
             </p>
           </div>
           <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
@@ -153,7 +156,7 @@ export const CaseLeftNav: React.FC<CaseLeftNavProps> = ({
           onClick={onOpenAssistant}
           className="w-full py-1.5 px-3 rounded-xl bg-white dark:bg-[#111827] hover:bg-blue-50 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold transition-all border border-blue-200/80 dark:border-blue-800/60 flex items-center justify-center gap-1.5 shadow-2xs"
         >
-          <span>Chat with Assistant</span>
+          <span>{t.openAssistant}</span>
           <span className="material-symbols-outlined text-sm">arrow_forward</span>
         </button>
       </div>

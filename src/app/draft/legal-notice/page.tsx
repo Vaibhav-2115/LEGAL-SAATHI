@@ -8,6 +8,7 @@ import { CaseContextBanner } from '../../../components/CaseContextBanner';
 import { LegalNoticeEditor } from '../../../components/LegalNoticeEditor';
 import { LegalNoticePreview } from '../../../components/LegalNoticePreview';
 import { LegalNoticeDraft } from '../../../lib/types';
+import { buildCaseSpecificDraft } from '../../../lib/draft-templates';
 
 function LegalNoticeContent() {
   const searchParams = useSearchParams();
@@ -28,51 +29,20 @@ function LegalNoticeContent() {
     if (currentCase && legalNoticeDrafts[currentCase.id]) {
       return legalNoticeDrafts[currentCase.id];
     }
-
-    const recipientName =
-      currentCase?.category.includes('Tenancy')
-        ? 'Ramesh Chandra (Landlord)'
-        : currentCase?.category.includes('Real Estate')
-        ? 'Apex Infrastructure & Housing Pvt. Ltd. (Promoter / Developer)'
-        : 'CloudMart Retail India Private Limited (Seller / Platform)';
-
-    const recipientAddress =
-      currentCase?.category.includes('Tenancy')
-        ? 'Flat 402, Block C, Heritage Enclave, Saket, South Delhi - 110017'
-        : 'Plot 12, Cyber City, Phase II, Gurugram, Haryana - 122002';
-
-    const statutoryBasis =
-      currentCase?.legalSources && currentCase.legalSources.length > 0
-        ? `${currentCase.legalSources[0].title} (${currentCase.legalSources[0].section})`
-        : 'Section 11(2) Model Tenancy Act, 2021 and Section 73 Indian Contract Act, 1872';
-
-    const demands =
-      currentCase?.category.includes('Tenancy')
-        ? [
-            `Immediately refund the full security deposit sum of ${currentCase?.claimAmount || '₹65,000'} via bank transfer.`,
-            'Furnish an itemized, verified statement of lawful deductions (if any) supported by original receipts.',
-            'Pay statutory interest at 9% per annum from the date of handover till actual realization.',
-            'Pay ₹10,000 towards harassment, mental agony, and cost of this legal notice.'
-          ]
-        : [
-            `Deliver vacant possession of apartment along with delayed interest compensation of ${currentCase?.claimAmount || '₹75,000/month'}.`,
-            'Withdraw unilateral price escalation notices immediately.',
-            'Provide certified copy of Fire NOC and Occupancy Certificate.'
-          ];
-
+    if (currentCase) {
+      return buildCaseSpecificDraft(currentCase);
+    }
     return {
-      recipientName,
-      recipientDesignation: currentCase?.category.includes('Tenancy') ? 'Property Owner / Lessor' : 'Managing Director / Authorised Signatory',
-      recipientAddress,
-      recipientEmail: 'notices@oppositeparty.com',
-      senderName: 'Rahul Sharma',
-      senderAddress: 'House 88, Green Park Extension, New Delhi - 110016',
-      incidentDate: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }),
-      demandedAmount: currentCase?.claimAmount || '₹65,000',
+      recipientName: 'Opposite Party',
+      recipientAddress: 'Jurisdiction of Dispute',
+      senderName: 'Aggrieved Citizen',
+      senderAddress: 'Correspondence Address',
+      incidentDate: new Date().toLocaleDateString('en-IN'),
+      demandedAmount: '₹65,000',
       curePeriodDays: 15,
-      factsSummary: currentCase?.citizenStatement || 'The aggrieved party entered into an agreement and fulfilled all covenants, but the opposite party has failed to honor statutory refund obligations.',
-      statutoryBasis,
-      demands
+      factsSummary: 'Dispute particulars recorded with Legal Saathi.',
+      statutoryBasis: 'Indian Statutory Framework',
+      demands: ['Immediate compliance within 15 statutory business days.']
     };
   };
 
@@ -223,7 +193,12 @@ ${draft.senderName}
             <LegalNoticePreview
               draft={draft}
               caseId={currentCase.id}
-              onEditClick={() => setActiveTab('editor')}
+              onEditFieldsClick={() => setActiveTab('editor')}
+              onUpdateDraft={(updated) => {
+                setDraft(updated);
+                saveLegalNoticeDraft(currentCase.id, updated);
+              }}
+              onSaveDraft={handleSaveDraft}
               onExportPdf={handleExportPdf}
               onCopyText={handleCopyText}
             />

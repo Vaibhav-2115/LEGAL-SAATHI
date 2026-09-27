@@ -162,6 +162,60 @@ Please provide a plain-language, grounded legal explanation citing the specific 
         case_title = case_context.get("title", "") if case_context else ""
         case_desc = case_context.get("description", "") if case_context else ""
 
+        # Conversational Greeting & Platform Introduction
+        is_greeting = issue_type == "greeting" or any(
+            query.lower().strip().startswith(g) for g in ["hello", "hi", "hey", "namaste", "pranam", "who are you", "what can you do", "help me"]
+        )
+        if is_greeting:
+            if lang == "hi":
+                return (
+                    "**नमस्ते! लीगल साथी (Legal Saathi) में आपका स्वागत है।**\n\n"
+                    "मैं भारतीय कानूनों और संहिताओं पर आधारित आपका AI कानूनी सहायक हूँ। मैं आम नागरिकों को निम्नलिखित मुख्य कानूनी मामलों में सहायता प्रदान करता हूँ:\n\n"
+                    "1. **किराया एवं आवास विवाद (Tenancy):** सुरक्षा जमा (Security Deposit) की अवैध कटौती, बिना नोटिस बेदखली, मॉडल किरायेदारी अधिनियम (MTA)।\n"
+                    "2. **उपभोक्ता संरक्षण (Consumer Disputes):** ख़राब उत्पाद, ई-कॉमर्स रिफंड, वारंटी विवाद, e-Daakhil शिकायत।\n"
+                    "3. **बिल्डर एवं रेरा (RERA) विवाद:** फ्लैट पजेशन में देरी, रेरा धारा 18 के तहत मासिक ब्याज एवं हर्जाना।\n"
+                    "4. **सूचना का अधिकार (RTI):** सरकारी विभागों से जानकारी हेतु आरटीआई धारा 6(1) आवेदन एवं प्रथम अपील।\n"
+                    "5. **साइबर वित्तीय धोखाधड़ी:** यूपीआई/ओटीपी फ्रॉड के विरुद्ध तत्काल 1930 गोल्डन ऑवर रिपोर्टिंग।\n"
+                    "6. **मुफ्त कानूनी सहायता:** अनुच्छेद 39A तथा जिला विधिक सेवा प्राधिकरण (DLSA) पैनल सहायता।\n\n"
+                    "कृपया अपने मामले का संक्षिप्त विवरण लिखें, मैं लागू कानूनी धाराएं और अगला कदम समझाऊंगा।"
+                )
+            return (
+                "**Hello! Welcome to Legal Saathi.**\n\n"
+                "I am your AI legal copilot grounded in verified Indian Bare Acts and statutory procedures. I assist citizens with everyday dispute resolution across 6 primary domains:\n\n"
+                "1. **Tenancy & Housing:** Security deposit withholding, illegal eviction, and rights under the Model Tenancy Act.\n"
+                "2. **Consumer Protection:** Defective products, e-commerce refund refusals, deficiency of service, and e-Daakhil filing.\n"
+                "3. **Builder & RERA Disputes:** Delayed flat possession compensation and interest under Section 18 of RERA, 2016.\n"
+                "4. **Right to Information (RTI):** Section 6(1) public authority information requests and First Appeals.\n"
+                "5. **Cybercrime & UPI Scams:** Immediate bank account freeze guidance via National Helpline **1930**.\n"
+                "6. **Free Legal Aid:** DLSA/NALSA pro-bono representation under Article 39A.\n\n"
+                "Please describe your dispute or situation in everyday language to begin."
+            )
+
+        # RTI (Right to Information)
+        if issue_type == "government_public" or any(k in (case_title + " " + case_desc + " " + query).lower() for k in ["rti", "right to information", "cpio", "pio"]):
+            return (
+                f"**Case-Specific Legal Analysis ({case_title or 'Right to Information (RTI) Inquiry'}):**\n\n"
+                f"1. **Governing Law:**\n"
+                f"   - **Section 6(1) of the Right to Information Act, 2005:** Any Indian citizen may request information from a Public Information Officer (PIO/CPIO) in writing or electronically with the nominal application fee (Rs. 10).\n"
+                f"   - **Section 7(1) of RTI Act, 2005:** The PIO is statutorily mandated to provide information within 30 days of receiving the request (or 48 hours if concerning life and liberty).\n"
+                f"   - **Section 19(1) of RTI Act, 2005:** If information is refused or delayed beyond 30 days, the applicant is entitled to file a First Appeal to the designated First Appellate Authority.\n\n"
+                f"2. **Recommended Action:** Draft a concise Section 6(1) RTI application specifying the public authority and specific record requested."
+            )
+
+        # Consumer Protection
+        if issue_type == "consumer" or any(k in (case_title + " " + case_desc + " " + query).lower() for k in ["consumer", "defective", "refund", "warranty", "flipkart", "amazon"]):
+            return (
+                f"**Case-Specific Legal Analysis ({case_title or 'Consumer Grievance'}):**\n\n"
+                f"1. **Governing Law:**\n"
+                f"   - **Consumer Protection Act, 2019 (Section 2(11)):** Defines 'deficiency' as any fault, imperfection, or shortcoming in the quality, quantity, or standard of goods or services.\n"
+                f"   - **Section 2(47) of CPA, 2019:** Regulates unfair trade practices including refusal to issue refunds or honor replacement warranties.\n"
+                f"   - **Section 35 of CPA, 2019:** Entitles consumers to institute proceedings before the District Consumer Disputes Redressal Commission.\n\n"
+                f"2. **Immediate Remedial Channels:**\n"
+                f"   - Call the **National Consumer Helpline at 1915** or register on consumerhelpline.gov.in.\n"
+                f"   - Serve a formal 15-Day Consumer Dispute Legal Notice to the manufacturer or seller.\n"
+                f"   - If unaddressed, file an e-complaint via the **e-Daakhil** portal."
+            )
+
         # Builder delay / Property RERA special handling
         if issue_type == "property_rera" or any(k in (case_title + " " + case_desc).lower() for k in ["builder", "possession", "rera", "bba"]):
             if lang == "hi":

@@ -19,12 +19,15 @@ import { FactVerificationCard } from '@/components/FactVerificationCard';
 import { FactToLawTrace } from '@/components/FactToLawTrace';
 import { SourceComparisonView } from '@/components/SourceComparisonView';
 import { LegalNoticeEditor } from '@/components/LegalNoticeEditor';
+import { LegalNoticePreview } from '@/components/LegalNoticePreview';
 import { SimilarCaseCard } from '@/components/SimilarCaseCard';
 import { CasePackagePreview } from '@/components/CasePackagePreview';
 
-// Types
+// Types & Helpers
 import { LegalNoticeDraft, EvidenceStatus, LegalExplanationTrace, SimilarCaseCluster } from '@/lib/types';
 import { legalSaathiApi } from '@/lib/api';
+import { buildCaseExplanationTrace, detectCaseDomain } from '@/lib/rules-engine';
+import { buildCaseSpecificDraft } from '@/lib/draft-templates';
 
 function CaseWorkspaceInner() {
   const params = useParams();
@@ -71,29 +74,44 @@ function CaseWorkspaceInner() {
   const [newEvidenceCategory, setNewEvidenceCategory] = useState('Proof of Payment / Bank Record');
   const [newEvidenceDesc, setNewEvidenceDesc] = useState('');
 
-  // Legal Notice Draft State
+  const [actionStep, setActionStep] = useState<'parameters' | 'preview'>('parameters');
+
+  // Legal Notice Draft State initialized dynamically from case facts
   const [draft, setDraft] = useState<LegalNoticeDraft>(() => {
     const cId = currentCase?.id || caseId;
-    return (
-      legalNoticeDrafts[cId] || {
-        id: `draft-${cId}`,
-        caseId: cId,
-        recipientName: 'Opposing Party / Authorized Representative',
-        recipientAddress: currentCase?.jurisdiction || 'Jurisdiction of Grievance',
-        disputeSubject: `Formal Statutory Legal Notice: ${currentCase?.title || 'Civil Dispute Redressal Demand'}`,
-        statutoryDays: 15,
-        coreFacts: currentCase?.keyFacts && currentCase.keyFacts.length > 0
-          ? currentCase.keyFacts.map((f) => f.statement)
-          : [currentCase?.citizenStatement || 'Dispute statement registered with Legal Saathi.'],
-        demands: [
-          'Immediate cessation of non-compliance and resolution within 15 statutory business days.',
-          'Reimbursement of outstanding claim amount and formal communication to the aggrieved party.'
-        ],
-        status: 'DRAFT',
-        preparedAt: new Date().toLocaleDateString('en-IN'),
-      }
-    );
+    if (legalNoticeDrafts[cId]) return legalNoticeDrafts[cId];
+    if (currentCase) return buildCaseSpecificDraft(currentCase);
+    return {
+      id: `draft-${cId}`,
+      caseId: cId,
+      recipientName: 'Opposing Party / Authorized Signatory',
+      recipientAddress: 'Jurisdiction of Dispute',
+      senderName: 'Aggrieved Citizen',
+      senderAddress: 'Correspondence Address',
+      incidentDate: new Date().toLocaleDateString('en-IN'),
+      demandedAmount: 'Statutory Claim',
+      curePeriodDays: 15,
+      factsSummary: 'Statement of facts recorded in docket.',
+      statutoryBasis: 'Indian Statutory Framework',
+      demands: [
+        'Immediate compliance within 15 statutory business days.',
+        'Reimbursement of outstanding claim amount and formal communication to the aggrieved party.'
+      ],
+      version: 1
+    };
   });
+
+  // Synchronize draft when currentCase changes
+  useEffect(() => {
+    if (currentCase) {
+      const existing = legalNoticeDrafts[currentCase.id];
+      if (existing) {
+        setDraft(existing);
+      } else {
+        setDraft(buildCaseSpecificDraft(currentCase));
+      }
+    }
+  }, [currentCase?.id]);
 
   useEffect(() => {
     if (tabFromQuery && tabFromQuery !== activeTab) {
@@ -175,42 +193,8 @@ function CaseWorkspaceInner() {
     return true;
   });
 
-  // Explanation Trace for Why Law Applies
-  const trace: LegalExplanationTrace = {
-    caseId: currentCase.id,
-    whatIUnderstand: currentCase.summary || currentCase.citizenStatement,
-    legalIssue: {
-      title: `${currentCase.category} Dispute & Statutory Non-Compliance`,
-      category: currentCase.category,
-      description: `Analysis of rights and reciprocal obligations arising under Indian law for ${currentCase.title}.`,
-    },
-    relevantProvision: {
-      title: currentCase.legalSources[0]?.title || 'Indian Contract Act, 1872',
-      section: currentCase.legalSources[0]?.section || 'Section 73',
-      authority: currentCase.legalSources[0]?.authority || 'Parliament of India',
-      statutoryText:
-        currentCase.legalSources[0]?.excerpt ||
-        'When a contract has been broken, the party who suffers by such breach is entitled to receive compensation.',
-    },
-    whyItMayApply: `Based on the facts on record, this statutory provision may be relevant because:\n• The citizen entered into a lawful relationship within the territorial jurisdiction of ${currentCase.jurisdiction}.\n• Available facts indicate non-performance or refusal to honor agreed contractual terms.\n• The statutory period for compliance has elapsed without written justification.`,
-    supportingFacts: currentCase.keyFacts.map(
-      (f, i) => `Fact #${i + 1}: ${f.statement} (${f.verificationStatus || 'Supported'})`
-    ),
-    supportingEvidence: currentCase.evidenceList.map((e) => e.name),
-    informationStillNeeded: [
-      'Written correspondence confirming the counterparty acknowledged the initial transaction',
-      'Bank statement or certified receipt validating the claimed amount',
-    ],
-    sourceId: currentCase.legalSources[0]?.id || 'ls1',
-    nextAction: {
-      title: currentCase.nextStep?.title || 'Issue Formal Demand Notice',
-      description:
-        currentCase.nextStep?.description ||
-        'Prepare a formal statutory notice giving 15 days to remedy breach.',
-      url: `/cases/${currentCase.id}?tab=actions`,
-      ctaText: 'Proceed to Notice Assistant',
-    },
-  };
+  // Explanation Trace for Why Law Applies synthesized dynamically from case domain and facts
+  const trace: LegalExplanationTrace = buildCaseExplanationTrace(currentCase);
 
   // Similar cases for Collective Assistance
   const [relevantClusters, setRelevantClusters] = useState<SimilarCaseCluster[]>([]);
@@ -436,27 +420,83 @@ function CaseWorkspaceInner() {
             {/* 9. LEGAL ACTIONS & NOTICES */}
             {activeTab === 'actions' && (
               <div className="flex flex-col gap-5">
-                <div className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-2xs flex items-center justify-between">
+                <div className="p-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h3 className="font-heading text-lg font-bold text-slate-900 dark:text-white">
-                      Legal Action Workflows
+                      Legal Action &amp; Notice Workflow
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Prepare a formal Section 106 Statutory Demand Notice pre-populated with your verified facts.
+                      {detectCaseDomain(currentCase) === 'property_rera'
+                        ? 'Prepare a formal Section 18 RERA Delayed Possession Demand Notice grounded in your verified facts.'
+                        : detectCaseDomain(currentCase) === 'employment'
+                        ? 'Prepare a formal Statutory Salary Demand Notice under the Code on Wages, 2019.'
+                        : detectCaseDomain(currentCase) === 'cybercrime'
+                        ? 'Prepare a formal IT Act & Banking Redressal Notice under RBI Master Directions.'
+                        : detectCaseDomain(currentCase) === 'consumer'
+                        ? 'Prepare a formal Section 35 Consumer Dispute Redressal Notice.'
+                        : 'Prepare a formal Statutory Demand Notice pre-populated with your verified facts.'}
                     </p>
                   </div>
-                  <span className="text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-1 rounded-lg">
-                    Step 1 of 3
-                  </span>
+
+                  {/* Workflow Stepper Navigation */}
+                  <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setActionStep('parameters')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                        actionStep === 'parameters'
+                          ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">tune</span>
+                      <span>1. Parameters</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActionStep('preview')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                        actionStep === 'preview'
+                          ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-sm">visibility</span>
+                      <span>2. Preview &amp; AI Edit</span>
+                    </button>
+                  </div>
                 </div>
 
-                <LegalNoticeEditor
-                  currentCase={currentCase}
-                  draft={draft}
-                  onDraftChange={setDraft}
-                  onSave={() => saveLegalNoticeDraft(currentCase.id, draft)}
-                  onRegenerate={() => {}}
-                />
+                {actionStep === 'parameters' ? (
+                  <LegalNoticeEditor
+                    currentCase={currentCase}
+                    draft={draft}
+                    onDraftChange={(updated) => {
+                      setDraft(updated);
+                      saveLegalNoticeDraft(currentCase.id, updated);
+                    }}
+                    onSave={() => saveLegalNoticeDraft(currentCase.id, draft)}
+                    onRegenerate={() => {
+                      if (confirm('Regenerate draft from case facts and statutory citations?')) {
+                        const regenerated = buildCaseSpecificDraft(currentCase);
+                        setDraft(regenerated);
+                        saveLegalNoticeDraft(currentCase.id, regenerated);
+                      }
+                    }}
+                    onPreviewClick={() => setActionStep('preview')}
+                  />
+                ) : (
+                  <LegalNoticePreview
+                    draft={draft}
+                    caseId={currentCase.id}
+                    onEditFieldsClick={() => setActionStep('parameters')}
+                    onUpdateDraft={(updated) => {
+                      setDraft(updated);
+                      saveLegalNoticeDraft(currentCase.id, updated);
+                    }}
+                    onSaveDraft={() => saveLegalNoticeDraft(currentCase.id, draft)}
+                  />
+                )}
               </div>
             )}
 

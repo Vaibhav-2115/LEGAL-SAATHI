@@ -40,6 +40,7 @@ interface LegalSaathiContextType {
   addChatMessage: (text: string) => void;
   caseMessages: Record<string, ChatMessage[]>;
   sendCaseMessage: (caseId: string, text: string) => Promise<ChatMessage | null>;
+  clearCaseMessages: (caseId: string) => void;
   language: SupportedLanguage;
   setLanguage: (lang: SupportedLanguage) => void;
   t: TranslationDictionary;
@@ -375,48 +376,39 @@ export function LegalSaathiProvider({ children }: { children: React.ReactNode })
       }
       return assistantMsg;
     } catch (err: any) {
-      const targetCase = cases.find((c) => c.id === caseId);
-      const caseText = `${targetCase?.title || ''} ${targetCase?.category || ''} ${targetCase?.summary || ''}`.toLowerCase();
-      const isBuilder = caseText.includes('builder') || caseText.includes('possession') || caseText.includes('rera') || caseText.includes('apartment');
-      const isLabor = caseText.includes('salary') || caseText.includes('wages') || caseText.includes('employer');
-
-      let fallbackText = 'I am currently unable to reach the legal knowledge base. Please check connectivity.';
-      if (isBuilder) {
-        fallbackText = 'Under Section 18 of the Real Estate (Regulation and Development) Act, 2016 (RERA), an allottee is entitled to claim interest for every month of delayed possession until actual handover. Remedies under the Consumer Protection Act, 2019 are also available for deficiency in service.';
-      } else if (isLabor) {
-        fallbackText = 'Under the Code on Wages, 2019 and Payment of Wages Act, earned salary cannot be arbitrarily withheld. You may issue a 15-day statutory demand notice or approach the Labour Commissioner under Section 33C of the Industrial Disputes Act.';
-      }
-
       const errorMsg: ChatMessage = {
         id: `asst-err-${Date.now()}`,
         sender: 'assistant',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        text: fallbackText,
-        structured: {
-          whatIUnderstand: `Inquiry regarding matter ${caseId}: "${text.slice(0, 100)}"`,
-          informationINeed: ['Primary agreement and dates', 'Written communication records'],
-          evidenceStrength: { score: 70, level: 'MODERATE', summary: 'Local case docket analysis' },
-          whyThisMayApply: isBuilder ? 'Section 18 RERA governs promoter delayed possession.' : 'Indian statutory protections apply to this dispute.',
-          legalSource: {
-            act: isBuilder ? 'Real Estate (Regulation and Development) Act, 2016' : 'Indian Civil & Statutory Law',
-            section: isBuilder ? 'Section 18' : 'General Relief',
-            summary: isBuilder ? 'Compensation and delayed possession interest.' : 'Statutory relief guidelines.'
-          },
-          whatYouCanDoNext: {
-            suggestion: 'Gather written contracts and issue a formal 15-day demand notice.',
-            actionLabel: 'Draft Demand Notice'
-          }
-        }
+        text: `⚠️ ${err?.message || 'Unable to connect to the Legal Saathi legal intelligence backend. Please verify your connection or ensure the backend service is running on port 8000.'}`,
+        isError: true
       };
 
       setCaseMessages((prev) => ({
         ...prev,
         [caseId]: [...(prev[caseId] || []), errorMsg]
       }));
+      if (caseId === activeCaseId) {
+        setChatMessages((prev) => [...prev, userMsg, errorMsg]);
+      }
       return errorMsg;
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const clearCaseMessages = (caseId: string) => {
+    setCaseMessages((prev) => ({
+      ...prev,
+      [caseId]: [
+        {
+          id: `m-init-${caseId}-${Date.now()}`,
+          sender: 'assistant',
+          text: `Hello! I'm your Legal Saathi Assistant for matter ${caseId}. I am grounded in Indian law and the specific facts recorded in this docket. How can I assist you with this legal matter today?`,
+          timestamp: 'Just now'
+        }
+      ]
+    }));
   };
 
   const addChatMessage = async (text: string) => {
@@ -620,6 +612,7 @@ export function LegalSaathiProvider({ children }: { children: React.ReactNode })
         addChatMessage,
         caseMessages,
         sendCaseMessage,
+        clearCaseMessages,
         language,
         setLanguage,
         t,

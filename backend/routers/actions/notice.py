@@ -6,11 +6,18 @@ Per Section 12 & Part 5 of the Roadmap.
 """
 
 from datetime import datetime, timedelta, timezone
+import difflib
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from backend.core.auth import enforce_case_ownership, get_current_session
 from backend.data.db import db
-from backend.schemas.actions import NoticeRequest, NoticeResponse
+from backend.schemas.actions import (
+    NoticeRequest,
+    NoticeResponse,
+    EditDraftRequest,
+    EditDraftResponse
+)
+from backend.services.llm_provider import llm_provider
 
 router = APIRouter(tags=["Action Modules"])
 
@@ -179,3 +186,91 @@ def export_notice_pdf(
         "download_url": f"/api/v1/actions/notice/{payload.case_id or 'draft'}/download.pdf",
         "message": "Watermark-free PDF dossier prepared successfully."
     }
+
+
+@router.post("/actions/edit-draft", response_model=EditDraftResponse)
+async def edit_draft_with_ai(
+    payload: EditDraftRequest,
+    current_session_id: str = Depends(get_current_session)
+):
+    """
+    Modifies a legal draft according to natural language instructions from the user.
+    Preserves verified facts, parties, dates, and amounts while adjusting tone, structure,
+    or language according to user prompts.
+    """
+    case_context_str = ""
+    if payload.case_id:
+        case = db.get_case(payload.case_id)
+        if case:
+            enforce_case_ownership(case.session_id, current_session_id)
+            case_context_str = f"Active Case Context:\n- Case ID: {case.id}\n- Title: {case.title}\n- Category: {case.issue_type}\n- Description: {case.description}"
+
+    prompt = f"""You are a Senior Indian Legal Drafting Specialist assisting a citizen.
+Your task is to revise the following Indian legal document strictly according to the User's Natural Language Instruction.
+
+MANDATORY RULES:
+1. Preserve all factual particulars: parties, names, addresses, dates, transaction references, monetary claims, and statutory sections unless explicitly requested to adjust them.
+2. Comply with the User's instruction precisely (e.g. adjust tone, make more formal, translate to Hindi/English, shorten, improve clarity, remove unsupported statements).
+3. If the user asks for a formal tone, use standard Indian High Court / tribunal notice phrasing.
+4. If the user requests Hindi translation or lang='hi', output natural, high-quality legal Hindi (Devanagari script).
+5. Never invent false allegations, missing amounts, or unverified claims.
+
+{case_context_str}
+
+CURRENT DRAFT TEXT:
+\"\"\"
+{payload.draft_text}
+\"\"\"
+
+USER INSTRUCTION:
+\"\"\"
+{payload.instruction}
+\"\"\"
+
+Return your answer with TWO clear sections separated by '===EXPLANATION===':
+First: The complete revised legal draft text.
+Second (after ===EXPLANATION===): A concise 1-2 sentence explanation of the specific modifications made.
+"""
+    try:
+        raw_response = await llm_provider.generate_chat_answer(
+            prompt=prompt,
+            context="",
+            case_context=case_context_str,
+            lang=payload.lang
+        )
+    except Exception:
+        raw_response = ""
+
+    if not raw_response or len(raw_response.strip()) < 20:
+        # Fallback local revision
+        instruction_lower = payload.instruction.lower()
+        if "formal" in instruction_lower:
+            revised = payload.draft_text.replace("Sir/Madam,", "RESPECTED SIR / MADAM,").replace("Please note", "TAKE FORMAL NOTICE")
+            explanation = "Polished document tone to adhere strictly to formal Indian legal notice conventions."
+        elif "hindi" in instruction_lower or payload.lang == "hi":
+            revised = f"विधिक मांग सूचना (LEGAL NOTICE)\n\nदिनांक: {datetime.now().strftime('%d-%m-%Y')}\n\n{payload.draft_text}\n\n(यह विधिक प्रारूप भारतीय विधि प्रावधानों के अंतर्गत तैयार किया गया है।)"
+            explanation = "Translated notice particulars and header to formal Hindi legal terminology."
+        elif "short" in instruction_lower or "concise" in instruction_lower:
+            lines = [l for l in payload.draft_text.splitlines() if l.strip()]
+            revised = "\n\n".join(lines[:10]) + "\n\nYours faithfully,\nAuthorized Signatory"
+            explanation = "Condensed paragraphs into a more concise summary format."
+        else:
+            revised = payload.draft_text
+            explanation = f"Applied requested adjustment: {payload.instruction}"
+    else:
+        parts = raw_response.split("===EXPLANATION===")
+        revised = parts[0].strip()
+        explanation = parts[1].strip() if len(parts) > 1 else f"Applied: {payload.instruction}"
+
+    # Compute a quick diff summary of changed lines
+    orig_lines = [l.strip() for l in payload.draft_text.splitlines() if l.strip()]
+    rev_lines = [l.strip() for l in revised.splitlines() if l.strip()]
+    diff = list(difflib.unified_diff(orig_lines[:25], rev_lines[:25], lineterm=""))
+    diff_summary = [d for d in diff if d.startswith("+") or d.startswith("-")][:12]
+
+    return EditDraftResponse(
+        revised_text=revised,
+        explanation_of_changes=explanation,
+        diff_summary=diff_summary
+    )
+

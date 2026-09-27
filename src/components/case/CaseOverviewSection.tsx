@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { LegalCase } from '@/lib/types';
+import { useLegalSaathi } from '@/context/LegalSaathiContext';
 
 interface CaseOverviewSectionProps {
   currentCase: LegalCase;
@@ -12,6 +13,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
   currentCase,
   onSelectTab,
 }) => {
+  const { t } = useLegalSaathi();
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionText, setDescriptionText] = useState(currentCase.summary);
   const [checkedSteps, setCheckedSteps] = useState<Record<string, boolean>>({
@@ -47,10 +49,10 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none">
-              Status
+              {t.caseStatus || 'Status'}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-1 leading-snug">
-              Action Required
+              {currentCase.status === 'ACTION REQUIRED' ? t.statusActionRequired : currentCase.status}
             </span>
             <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium mt-0.5 leading-none">
               {missingCount} critical gap
@@ -65,7 +67,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none">
-              Evidence
+              {t.tabEvidence}
             </span>
             <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-1 leading-snug">
               {totalEvidence} Documents
@@ -83,7 +85,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none">
-              Deadline
+              {t.statutoryLimitation}
             </span>
             <span className="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 mt-1 leading-snug">
               In 14 Days
@@ -106,7 +108,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-slate-500 text-lg">edit_note</span>
                 <h3 className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                  Case Statement &amp; Facts
+                  {t.whatIUnderstand}
                 </h3>
               </div>
               <button
@@ -115,7 +117,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
               >
                 <span className="material-symbols-outlined text-xs">edit</span>
-                <span>{isEditingDescription ? 'Save' : 'Edit'}</span>
+                <span>{isEditingDescription ? t.btnSaveDraft : t.btnEditManually}</span>
               </button>
             </div>
 
@@ -152,7 +154,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
           {/* Actionable Next Steps Checklist */}
           <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-              Actionable Next Steps:
+              {t.nextLegalSteps}:
             </span>
             <div className="flex flex-col gap-2">
               <label className="flex items-center gap-2.5 cursor-pointer text-xs text-slate-800 dark:text-slate-200">
@@ -214,7 +216,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-amber-500 text-lg">lightbulb</span>
                 <h3 className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                  Statutory Assessment
+                  {t.statutoryLinkage}
                 </h3>
               </div>
               <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">
@@ -308,7 +310,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
             onClick={() => onSelectTab('explanation')}
             className="w-full py-2 px-3.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
           >
-            <span>Inspect Why Law Applies</span>
+            <span>{t.tabWhyLawApplies}</span>
             <span className="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
         </div>
@@ -323,14 +325,14 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
           <div>
             <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
               <h3 className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                Recent Case Activity
+                {t.tabTimeline}
               </h3>
               <button
                 type="button"
                 onClick={() => onSelectTab('timeline')}
                 className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
               >
-                <span>Full Timeline</span>
+                <span>{t.tabTimeline}</span>
                 <span className="material-symbols-outlined text-xs">arrow_forward</span>
               </button>
             </div>
@@ -351,7 +353,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
                   onClick={() => onSelectTab('evidence')}
                   className="text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline shrink-0"
                 >
-                  Verified
+                  {t.statusVerified || 'Verified'}
                 </button>
               </div>
 
@@ -370,7 +372,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
                   onClick={() => onSelectTab('missing-info')}
                   className="text-xs text-rose-600 dark:text-rose-400 font-semibold hover:underline shrink-0"
                 >
-                  Needs Attention
+                  {t.statusActionRequired || 'Needs Attention'}
                 </button>
               </div>
 
@@ -396,7 +398,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
         <div className="lg:col-span-6 p-5 rounded-2xl bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between gap-3">
           <div className="pb-2.5 border-b border-slate-100 dark:border-slate-800">
             <h3 className="font-heading text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-              Primary Workflow Actions
+              {t.groupActions}
             </h3>
           </div>
 
@@ -413,7 +415,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
                 </div>
                 <div className="truncate">
                   <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                    Draft Section 106 Demand Notice
+                    {t.tabActions}
                   </h4>
                   <p className="text-[11px] text-slate-500 truncate">
                     Pre-populate formal statutory notice for 15-day remedy
@@ -437,7 +439,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
                 </div>
                 <div className="truncate">
                   <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                    Close 1 Evidentiary Gap
+                    {t.tabMissingInfo}
                   </h4>
                   <p className="text-[11px] text-slate-500 truncate">
                     Add move-out photos to corroborate peaceful handover
@@ -461,7 +463,7 @@ export const CaseOverviewSection: React.FC<CaseOverviewSectionProps> = ({
                 </div>
                 <div className="truncate">
                   <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                    Ekjut Collective Action
+                    {t.tabCollective}
                   </h4>
                   <p className="text-[11px] text-slate-500 truncate">
                     12 similar security deposit withholding claims found in Saket

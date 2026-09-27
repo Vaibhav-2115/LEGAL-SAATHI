@@ -207,19 +207,40 @@ export const legalSaathiApi = {
    */
   async sendChat(query: string, caseId?: string, lang: string = 'en'): Promise<BackendChatResponse> {
     const sessionId = getSessionId();
-    const response = await fetch(`${API_BASE}/chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Session-ID': sessionId
-      },
-      body: JSON.stringify({
-        text: query,
-        session_id: sessionId,
-        case_id: caseId || undefined,
-        lang
-      })
+    let response: Response;
+
+    const requestBody = JSON.stringify({
+      text: query,
+      session_id: sessionId,
+      case_id: caseId || undefined,
+      lang
     });
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-Session-ID': sessionId
+    };
+
+    try {
+      // Try local same-origin /api/chat proxy first when running in browser
+      const endpoint = typeof window !== 'undefined' ? '/api/chat' : `${API_BASE}/chat`;
+      response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: requestBody
+      });
+    } catch {
+      // Fallback directly to backend API_BASE/chat
+      try {
+        response = await fetch(`${API_BASE}/chat`, {
+          method: 'POST',
+          headers,
+          body: requestBody
+        });
+      } catch {
+        throw new Error('Unable to connect to Legal Saathi backend service. Please ensure the backend is running on port 8000.');
+      }
+    }
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
@@ -391,5 +412,93 @@ export const legalSaathiApi = {
     } catch {
       return [];
     }
+  },
+
+  /**
+   * Generates a formal legal notice draft from backend (POST /actions/notice)
+   */
+  async generateNotice(payload: {
+    caseId?: string;
+    senderName: string;
+    senderAddress: string;
+    recipientName: string;
+    recipientAddress: string;
+    subject: string;
+    issueType: string;
+    facts: string[];
+    demands: string[];
+    statutoryNoticeDays?: number;
+    disputedAmount?: number;
+  }): Promise<{ draftId: string; draftText: string; applicableAct: string; statutoryWarning: string }> {
+    const sessionId = getSessionId();
+    const response = await fetch(`${API_BASE}/actions/notice`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Session-ID': sessionId
+      },
+      body: JSON.stringify({
+        case_id: payload.caseId,
+        sender_name: payload.senderName,
+        sender_address: payload.senderAddress,
+        recipient_name: payload.recipientName,
+        recipient_address: payload.recipientAddress,
+        subject: payload.subject,
+        issue_type: payload.issueType,
+        facts: payload.facts,
+        demands: payload.demands,
+        statutory_notice_days: payload.statutoryNoticeDays || 15,
+        disputed_amount: payload.disputedAmount
+      })
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.detail?.message || err?.message || 'Notice generation failed');
+    }
+    const data = await response.json();
+    return {
+      draftId: data.draft_id,
+      draftText: data.draft_text,
+      applicableAct: data.applicable_act,
+      statutoryWarning: data.statutory_warning
+    };
+  },
+
+  /**
+   * Revises legal draft text using natural language instructions with AI (POST /actions/edit-draft)
+   */
+  async editDraftWithAI(
+    draftText: string,
+    instruction: string,
+    caseId?: string,
+    sectionName?: string,
+    lang: string = 'en'
+  ): Promise<{ revisedText: string; explanation: string; diffSummary: string[] }> {
+    const sessionId = getSessionId();
+    const response = await fetch(`${API_BASE}/actions/edit-draft`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Session-ID': sessionId
+      },
+      body: JSON.stringify({
+        draft_text: draftText,
+        instruction,
+        case_id: caseId,
+        section_name: sectionName,
+        lang
+      })
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err?.detail?.message || err?.message || 'AI Draft editing failed');
+    }
+    const data = await response.json();
+    return {
+      revisedText: data.revised_text,
+      explanation: data.explanation_of_changes,
+      diffSummary: data.diff_summary || []
+    };
   }
 };
+

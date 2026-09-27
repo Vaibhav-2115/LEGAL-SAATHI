@@ -40,6 +40,17 @@ BILINGUAL_LEGAL_MAP: Dict[str, str] = {
     "सूचना": "information rti public authority right disclosure",
     "साइबर": "cyber fraud otp upi unauthorized bank transaction 1930 hacking",
     "पुलिस": "police fir complaint station investigation report",
+    # English citizen acronyms & shorthand expansions
+    "rti": "right information act pio public cpio authority appeal disclosure 6 7 19",
+    "rera": "real estate regulation development builder possession allottee promoter 18 19",
+    "deposit": "security deposit rent tenant tenancy landlord refund premises",
+    "evict": "eviction notice tenant landlord premises possession 106",
+    "eviction": "eviction notice tenant landlord premises possession 106",
+    "upi": "cyber fraud unauthorized online bank transfer 1930 transaction scam",
+    "scam": "fraud cheating cyber unauthorized transfer 318 420",
+    "stolen": "theft stolen property dishonestly section 378 379 ipc bns",
+    "cheque": "cheque dishonour section 138 negotiable instruments bank",
+    "salary": "salary wages unpaid payment gratuity termination employment labor wages act",
 }
 
 

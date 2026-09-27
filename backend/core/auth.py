@@ -48,7 +48,12 @@ def verify_case_ownership(case_session_id: Optional[str], current_session_id: st
     """
     if not case_session_id:
         return False
-    return case_session_id == current_session_id
+    if case_session_id == current_session_id:
+        return True
+    # Demo / public seeded / system cases are accessible across user sessions
+    if case_session_id in ("demo", "demo_session", "sample", "default", "system", "sess_default_frontend") or case_session_id.startswith("demo_"):
+        return True
+    return False
 
 
 def enforce_case_ownership(case_session_id: Optional[str], current_session_id: str) -> None:

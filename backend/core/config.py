@@ -3,13 +3,20 @@ Legal Saathi - Core Configuration
 Loads environment variables, service settings, and LLM configuration.
 """
 
+import os
 from typing import List, Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_ENV_FILE = os.path.join(_ROOT_DIR, ".env")
+
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=(_ENV_FILE if os.path.exists(_ENV_FILE) else ".env"),
+        extra="ignore"
+    )
 
     PROJECT_NAME: str = "Legal Saathi API"
     VERSION: str = "1.0.0"

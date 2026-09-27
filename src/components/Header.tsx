@@ -164,10 +164,10 @@ export const Header: React.FC = () => {
 
   // Standard Header for Main Application Pages
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'My Complaints', href: '/complaints' },
-    { name: 'Legal Assistant', href: '/chat' },
-    { name: 'Case Workspace', href: '/cases/LS-2026-0042' },
+    { name: t.navHome, href: '/' },
+    { name: t.navMyMatters, href: '/complaints' },
+    { name: t.navLegalAssistant, href: '/chat' },
+    { name: t.navCaseWorkspace, href: '/cases/LS-2026-0042' },
   ];
 
   const userInitials = user?.name

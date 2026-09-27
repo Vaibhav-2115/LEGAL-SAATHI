@@ -33,9 +33,19 @@ export const FactToLawTrace: React.FC<FactToLawTraceProps> = ({ trace, caseId })
               Follow how verified facts connect directly to statutory provisions and actionable steps.
             </p>
           </div>
-          <span className="text-[11px] font-semibold text-secondary dark:text-secondary-fixed bg-secondary/10 dark:bg-secondary/20 px-2.5 py-1 rounded-full self-start sm:self-auto">
-            100% Traceable Linkage
-          </span>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span
+              className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                (trace.traceabilityScore ?? 85) >= 80
+                  ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60'
+                  : (trace.traceabilityScore ?? 85) >= 50
+                  ? 'text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/60'
+                  : 'text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60'
+              }`}
+            >
+              {trace.traceabilityScore ?? 85}% Traceable Linkage
+            </span>
+          </div>
         </div>
 
         {/* Step Nodes */}
@@ -112,16 +122,31 @@ export const FactToLawTrace: React.FC<FactToLawTraceProps> = ({ trace, caseId })
             aria-labelledby="provision-heading"
             className="bg-surface-container-lowest dark:bg-[#0F131C] border border-outline-variant/40 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4"
           >
-            <div className="flex items-center justify-between gap-2 border-b border-outline-variant/30 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/30 pb-3">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-xl">gavel</span>
                 <h3 id="provision-heading" className="font-heading text-base sm:text-lg font-bold text-on-surface">
-                  Potentially Relevant Legal Provision
+                  Applicable Statutory Provision
                 </h3>
               </div>
-              <span className="text-xs font-mono font-bold text-primary dark:text-primary-fixed bg-primary/10 px-2.5 py-1 rounded-md">
-                {trace.relevantProvision.section}
-              </span>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    trace.relevantProvision.applicabilityStatus === 'Applicable based on verified facts'
+                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                      : trace.relevantProvision.applicabilityStatus === 'Requires additional information'
+                      ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+                      : trace.relevantProvision.applicabilityStatus === 'Not applicable to current facts'
+                      ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+                      : 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300'
+                  }`}
+                >
+                  {trace.relevantProvision.applicabilityStatus || 'Applicable based on verified facts'}
+                </span>
+                <span className="text-xs font-mono font-bold text-primary dark:text-primary-fixed bg-primary/10 px-2.5 py-1 rounded-md">
+                  {trace.relevantProvision.section}
+                </span>
+              </div>
             </div>
 
             <div>
@@ -135,17 +160,38 @@ export const FactToLawTrace: React.FC<FactToLawTraceProps> = ({ trace, caseId })
               </div>
             </div>
 
-            {/* WHY IT MAY APPLY */}
+            {/* STATUTORY DEADLINE & TIMELINE */}
+            {trace.relevantProvision.statutoryDeadline && (
+              <div className="p-3 bg-blue-50/80 dark:bg-blue-950/40 rounded-xl border border-blue-200/60 dark:border-blue-800/60 flex items-start gap-2.5 text-xs text-blue-950 dark:text-blue-200">
+                <span className="material-symbols-outlined text-base text-blue-600 shrink-0 mt-0.5">schedule</span>
+                <div>
+                  <span className="font-bold block mb-0.5">Verified Statutory Time Limit / Limitation:</span>
+                  <span>{trace.relevantProvision.statutoryDeadline}</span>
+                </div>
+              </div>
+            )}
+
+            {trace.relevantProvision.deadlineWarning && (
+              <div className="p-3 bg-amber-50/80 dark:bg-amber-950/40 rounded-xl border border-amber-300/60 dark:border-amber-800/60 flex items-start gap-2.5 text-xs text-amber-950 dark:text-amber-200">
+                <span className="material-symbols-outlined text-base text-amber-600 shrink-0 mt-0.5">warning</span>
+                <div>
+                  <span className="font-bold block mb-0.5">Limitation Notice:</span>
+                  <span>{trace.relevantProvision.deadlineWarning}</span>
+                </div>
+              </div>
+            )}
+
+            {/* WHY IT APPLIES */}
             <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20 space-y-2">
               <div className="flex items-center gap-2 text-xs font-bold text-primary dark:text-primary-fixed uppercase tracking-wider">
                 <span className="material-symbols-outlined text-base">help</span>
-                <span>Why This Provision May Be Relevant</span>
+                <span>Why This Provision Applies</span>
               </div>
               <p className="text-xs sm:text-sm text-on-surface leading-relaxed whitespace-pre-line">
                 {trace.whyItMayApply}
               </p>
               <p className="text-[11px] text-on-surface-variant italic pt-1">
-                Note: This assessment indicates potential statutory grounds based on current user submissions and does not constitute a judicial ruling.
+                Note: This assessment indicates verified statutory grounds based on current factual records and does not constitute a judicial ruling.
               </p>
             </div>
           </section>
@@ -263,12 +309,28 @@ export const FactToLawTrace: React.FC<FactToLawTraceProps> = ({ trace, caseId })
                 What You Can Do Next
               </h3>
             </div>
-            <h4 className="text-xs font-bold text-on-surface">
-              {trace.nextAction.title}
-            </h4>
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-xs font-bold text-on-surface">
+                {trace.nextAction.title}
+              </h4>
+              <span
+                className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                  trace.nextAction.isVerifiedAction !== false
+                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                    : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
+                }`}
+              >
+                {trace.nextAction.isVerifiedAction !== false ? 'Verified Action' : 'Action Pending Proof'}
+              </span>
+            </div>
             <p className="text-xs text-on-surface-variant leading-relaxed">
               {trace.nextAction.description}
             </p>
+            {trace.nextAction.isVerifiedAction === false && (
+              <p className="text-[11px] text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800">
+                No verified statutory legal action is available based on the current information. Please provide additional details or consult a qualified legal professional.
+              </p>
+            )}
             <Link
               href={trace.nextAction.url}
               className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-primary text-on-primary font-bold text-xs hover:bg-primary/90 transition-colors shadow-sm"

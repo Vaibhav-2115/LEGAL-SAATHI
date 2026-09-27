@@ -82,3 +82,19 @@ def test_checklist():
     data = resp.json()
     assert len(data["essential_documents"]) > 0
     assert "Rent Agreement" in str(data["essential_documents"])
+
+
+def test_edit_draft():
+    payload = {
+        "draft_text": "Sir, You have delayed flat possession. Please refund my money within 15 days.",
+        "instruction": "Make this notice more formal under Section 18 of RERA and mention statutory interest.",
+        "lang": "en"
+    }
+    resp = client.post("/actions/edit-draft", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "revised_text" in data
+    assert len(data["revised_text"]) > 10
+    assert "explanation_of_changes" in data
+    assert "diff_summary" in data
+

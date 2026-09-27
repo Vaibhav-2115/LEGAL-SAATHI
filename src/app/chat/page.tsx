@@ -17,9 +17,11 @@ function ChatContent() {
   const [attachedFile, setAttachedFile] = useState<string | null>(null);
   const chatRecognitionRef = React.useRef<any>(null);
 
+  const querySubmittedRef = React.useRef(false);
   useEffect(() => {
-    if (initialQuery && !inputText) {
-      setInputText(initialQuery);
+    if (initialQuery && !querySubmittedRef.current) {
+      querySubmittedRef.current = true;
+      addChatMessage(initialQuery);
     }
   }, [initialQuery]);
 
@@ -255,9 +257,27 @@ function ChatContent() {
                 );
               }
 
+              if (msg.isError) {
+                return (
+                  <div key={msg.id} className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5 shadow-xs">
+                    <span className="material-symbols-outlined text-base text-red-600 dark:text-red-400 shrink-0">error</span>
+                    <div className="space-y-1">
+                      <p className="font-semibold">{msg.text}</p>
+                      <p className="text-[11px] text-red-600 dark:text-red-400">Ensure the FastAPI backend server is active at http://localhost:8000 and try again.</p>
+                    </div>
+                  </div>
+                );
+              }
+
               // Assistant structured response matching Stitch specifications
               const structured = msg.structured;
-              if (!structured) return null;
+              if (!structured) {
+                return (
+                  <div key={msg.id} className="p-4 rounded-xl bg-slate-50 dark:bg-[#161F30] border border-slate-200 dark:border-[#1E293B] text-xs text-slate-800 dark:text-slate-200">
+                    <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                  </div>
+                );
+              }
 
               return (
                 <div key={msg.id} className="flex flex-col gap-3 w-full">

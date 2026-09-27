@@ -6,7 +6,7 @@ import { useLegalSaathi } from '@/context/LegalSaathiContext';
 import { NewComplaintModal } from '@/components/dashboard/NewComplaintModal';
 
 export default function MyMattersPage() {
-  const { cases, setActiveCaseId } = useLegalSaathi();
+  const { cases, setActiveCaseId, t } = useLegalSaathi();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState<'ALL' | 'ACTIVE' | 'ACTION REQUIRED' | 'COMPLETED' | 'ARCHIVED'>('ALL');
   const [sortBy, setSortBy] = useState<'latest' | 'oldest'>('latest');
@@ -92,16 +92,16 @@ export default function MyMattersPage() {
           {/* Breadcrumb: Home > My Matters */}
           <nav className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
             <Link href="/dashboard" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              Home
+              {t.navHome}
             </Link>
             <span className="text-slate-300 dark:text-slate-600">/</span>
-            <span className="text-slate-900 dark:text-white font-semibold">My Matters</span>
+            <span className="text-slate-900 dark:text-white font-semibold">{t.navMyMatters}</span>
           </nav>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="font-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                My Matters
+                {t.navMyMatters}
               </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                 View, track and manage all your complaints and cases in one place.
@@ -115,7 +115,7 @@ export default function MyMattersPage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all shrink-0"
             >
               <span className="material-symbols-outlined text-lg">add</span>
-              <span>Create New Complaint</span>
+              <span>{t.btnCreateCase}</span>
             </button>
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function MyMattersPage() {
                   : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
               }`}
             >
-              All {allCount}
+              {t.statusAll} {allCount}
             </button>
 
             <button
@@ -147,7 +147,7 @@ export default function MyMattersPage() {
                   : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
               }`}
             >
-              Active {activeCount}
+              {t.statusActive} {activeCount}
             </button>
 
             <button
@@ -159,7 +159,7 @@ export default function MyMattersPage() {
                   : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
               }`}
             >
-              Action Required {actionRequiredCount}
+              {t.statusActionRequired} {actionRequiredCount}
             </button>
 
             <button
@@ -171,7 +171,7 @@ export default function MyMattersPage() {
                   : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
               }`}
             >
-              Completed {completedCount}
+              {t.statusCompleted} {completedCount}
             </button>
 
             <button
@@ -183,7 +183,7 @@ export default function MyMattersPage() {
                   : 'bg-white dark:bg-[#111827] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-[#1E293B]'
               }`}
             >
-              Archived {archivedCount}
+              {t.statusArchived} {archivedCount}
             </button>
           </div>
 

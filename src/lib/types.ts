@@ -176,9 +176,21 @@ export interface ChatMessage {
   timestamp: string;
   text?: string;
   structured?: AssistantResponseStructure;
+  isError?: boolean;
+}
+
+export interface DraftVersion {
+  version: number;
+  content: string;
+  source: 'initial' | 'manual' | 'ai_edit' | 'regenerated';
+  timestamp: string;
+  notes?: string;
 }
 
 export interface LegalNoticeDraft {
+  id?: string;
+  caseId?: string;
+  documentType?: 'LEGAL_NOTICE' | 'RERA_COMPLAINT' | 'LABOUR_NOTICE' | 'CONSUMER_NOTICE' | 'CYBER_COMPLAINT';
   recipientName: string;
   recipientDesignation?: string;
   recipientAddress: string;
@@ -192,6 +204,36 @@ export interface LegalNoticeDraft {
   statutoryBasis: string;
   demands: string[];
   lastSaved?: string;
+  // Domain-specific dynamic parameters
+  projectDetails?: {
+    projectName?: string;
+    unitNumber?: string;
+    agreementDate?: string;
+    promisedPossessionDate?: string;
+    reraRegistrationNumber?: string;
+  };
+  employmentDetails?: {
+    employeeDesignation?: string;
+    unpaidPeriod?: string;
+    monthlySalary?: string;
+    totalSalaryClaimed?: string;
+  };
+  cyberDetails?: {
+    platformName?: string;
+    transactionReference?: string;
+    incidentTime?: string;
+    reportingAuthority?: string;
+  };
+  consumerDetails?: {
+    sellerName?: string;
+    orderReference?: string;
+    purchaseDate?: string;
+    defectSummary?: string;
+  };
+  // Full text and version management
+  fullDocumentText?: string;
+  version?: number;
+  versions?: DraftVersion[];
 }
 
 export interface RTIDraft {
@@ -224,6 +266,8 @@ export interface EFIRDraft {
 export interface LegalExplanationTrace {
   caseId: string;
   whatIUnderstand: string;
+  traceabilityScore?: number;
+  traceabilityStatus?: 'FULL' | 'SUBSTANTIAL' | 'PARTIAL' | 'PRELIMINARY';
   legalIssue: {
     title: string;
     category: string;
@@ -234,6 +278,15 @@ export interface LegalExplanationTrace {
     section: string;
     authority: string;
     statutoryText: string;
+    applicabilityStatus?:
+      | 'Applicable based on verified facts'
+      | 'Potentially applicable'
+      | 'Requires additional information'
+      | 'Not applicable to current facts'
+      | 'Unable to verify';
+    applicabilityReasoning?: string;
+    statutoryDeadline?: string;
+    deadlineWarning?: string;
   };
   whyItMayApply: string;
   supportingFacts: string[];
@@ -245,6 +298,7 @@ export interface LegalExplanationTrace {
     description: string;
     url: string;
     ctaText: string;
+    isVerifiedAction?: boolean;
   };
 }
 
